@@ -327,12 +327,25 @@
     ═══════════════════════════════════════ */
     .output-actions {
       display: flex;
-      gap: 10px;
+      gap: 7px;
       width: 100%;
       margin-top: 12px;
       margin-bottom: 14px;
       padding-top: 10px;
       border-top: 1px solid rgba(255,255,255,.06);
+      flex-wrap: nowrap;
+    }
+    /* icon-only compact buttons (Share + History) */
+    .btn-icon-sq {
+      flex: 0 0 auto;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      border-radius: var(--r);
     }
 
     .btn-regen,
@@ -3051,8 +3064,8 @@ function buildRightCol(mob, keyOk) {
     h += '<div class="output-actions">' +
       '<button class="btn-ghost btn-regen" id="b-regen"><span class="act-icon">↺</span> '+t('btnRegenerate')+'</button>' +
       '<button class="btn-ghost btn-act-copy" id="b-cp-all"><span class="act-icon">⧉</span> '+t('btnCopy')+'</button>' +
-      (tg ? '<button class="btn-ghost" id="b-share" style="font-size:12px;padding:5px 10px;color:var(--acc-txt);border-color:rgba(47,129,247,.3)" title="Share prompt"><span class="act-icon">✈️</span> Share</button>' : '') +
-      '<button class="btn-ghost" id="b-hist" title="'+t('histBtnTitle')+'" style="font-size:12px;padding:5px 10px"><span class="act-icon">📜</span> ' + (loadHistory().length || '') + '</button>' +
+      (tg ? '<button class="btn-ghost btn-icon-sq" id="b-share" title="Share prompt" style="color:var(--acc-txt);border-color:rgba(47,129,247,.3)">✈️</button>' : '') +
+      '<button class="btn-ghost btn-icon-sq" id="b-hist" title="'+t('histBtnTitle')+'">📜</button>' +
     '</div>';
 
     h += '<button class="btn-ghost" id="b-improve-this" style="' +
