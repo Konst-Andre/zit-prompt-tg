@@ -1881,6 +1881,15 @@ function t(key) {
 'use strict';
 
 /* ═══════════════════════════════════════════════════
+   PROXY CONFIG
+   PROXY_URL → запити йдуть через Render проксі,
+   API key зберігається на сервері у .env.
+   Якщо PROXY_URL порожній — fallback на прямий Groq
+   (для локальної розробки зі своїм ключем).
+═══════════════════════════════════════════════════ */
+var PROXY_URL = 'https://zit-proxy.onrender.com';
+
+/* ═══════════════════════════════════════════════════
    TELEGRAM MINI APP INIT
    tg = null → звичайний браузер, всі TG-специфічні
    фічі вимкнені, app працює нормально.
@@ -1892,6 +1901,8 @@ var tg = (window.Telegram && window.Telegram.WebApp) || null;
 if (tg) {
   tg.ready();   /* сигналізує TG що app завантажений */
   tg.expand();  /* розгортає на весь екран            */
+  /* warm-up ping — прокидає Render сервер поки юзер вводить дані */
+  if (PROXY_URL) fetch(PROXY_URL + '/health').catch(function(){});
 }
 
 /* ═══════════════════════════════════════════════════
@@ -2277,7 +2288,11 @@ async function callGroqOnce(signal) {
   signal.addEventListener('abort', _doAbortCombined, {once:true});
   _tac.signal.addEventListener('abort', _doAbortCombined, {once:true});
   try {
-    res = await fetch('https://api.groq.com/openai/v1/chat/completions', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.apiKey}, body:JSON.stringify(body), signal:_combinedAc.signal });
+    var _endpoint = PROXY_URL ? (PROXY_URL + '/proxy/groq') : 'https://api.groq.com/openai/v1/chat/completions';
+    var _headers  = PROXY_URL
+      ? { 'Content-Type': 'application/json' }
+      : { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.apiKey };
+    res = await fetch(_endpoint, { method:'POST', headers:_headers, body:JSON.stringify(body), signal:_combinedAc.signal });
     clearTimeout(_tid); signal.removeEventListener('abort', _doAbortCombined);
   } catch(e) {
     clearTimeout(_tid); signal.removeEventListener('abort', _doAbortCombined);
@@ -2417,9 +2432,13 @@ async function callVisionOnce(base64, mime) {
       ]
     }]
   };
-  var res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  var _vEndpoint = PROXY_URL ? (PROXY_URL + '/proxy/groq') : 'https://api.groq.com/openai/v1/chat/completions';
+  var _vHeaders  = PROXY_URL
+    ? { 'Content-Type': 'application/json' }
+    : { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.apiKey };
+  var res = await fetch(_vEndpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.apiKey },
+    headers: _vHeaders,
     body: JSON.stringify(body)
   });
   if (!res.ok) { var et = await res.text(); throw new Error('Vision API ' + res.status + ': ' + et.slice(0,120)); }
@@ -2469,7 +2488,7 @@ function applyVisionResult(raw) {
 }
 
 async function analyzeImage(file) {
-  if (!S.apiKey.trim()) { S.error=t('errNoKey'); S.apiOpen=true; renderImmediate(); return; }
+  if (!PROXY_URL && !S.apiKey.trim()) { S.error=t('errNoKey'); S.apiOpen=true; renderImmediate(); return; }
   var ALLOWED = ['image/jpeg','image/png','image/webp'];
   if (!ALLOWED.includes(file.type)) { S.error=t('visionErrType'); renderImmediate(); return; }
   if (file.size > MAX_VISION_MB * 1024 * 1024) { S.error=t('visionErrSize').replace('{maxMB}', MAX_VISION_MB); renderImmediate(); return; }
@@ -2498,7 +2517,7 @@ async function analyzeImage(file) {
 }
 
 async function generate() {
-  if (!S.apiKey.trim()) { S.error=t('errNoKey'); S.apiOpen=true; renderImmediate(); forceRepaint(); return; }
+  if (!PROXY_URL && !S.apiKey.trim()) { S.error=t('errNoKey'); S.apiOpen=true; renderImmediate(); forceRepaint(); return; }
   if (S.mode==='generate' && !S.subject.trim()) { S.error=t('errNoSubject'); renderImmediate(); forceRepaint(); return; }
   if (S.mode==='enhance'  && !S.existing.trim()) { S.error=t('errNoExisting'); renderImmediate(); forceRepaint(); return; }
   if (_busy) { if (_ac) _ac.abort(); _busy=false; }
@@ -3237,7 +3256,7 @@ function buildHistPanel() {
 
 function buildHTML() {
   var mob   = window.innerWidth <= 680;
-  var keyOk = !!S.apiKey.trim();
+  var keyOk = PROXY_URL ? true : !!S.apiKey.trim();
   return [
     buildHeader(mob, keyOk),
     buildApiPanel(),
