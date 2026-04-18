@@ -381,9 +381,17 @@
     /* COPY — secondary, muted */
     .btn-act-copy {
       flex: 1;
+      min-width: 0;       /* дозволяє flex стиснути кнопку при довгому тексті */
+      overflow: hidden;
       opacity: .65;
       transition: opacity .15s ease, transform .1s ease,
                   border-color var(--tr), color var(--tr), background var(--tr);
+    }
+    .btn-act-copy .act-icon { flex-shrink: 0; }  /* іконка не стискається */
+    .btn-act-copy span:last-child {               /* текст обрізається */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .btn-act-copy:hover  { opacity: .85; border-color: var(--bdr2); color: var(--t2); }
     .btn-act-copy:active { transform: scale(0.97); }
@@ -3116,7 +3124,7 @@ function buildRightCol(mob, keyOk) {
 
     h += '<div class="output-actions">' +
       '<button class="btn-ghost btn-regen" id="b-regen"><span class="act-icon">↺</span> '+t('btnRegenerate')+'</button>' +
-      '<button class="btn-ghost btn-act-copy" id="b-cp-all"><span class="act-icon">⧉</span> '+t('btnCopy')+'</button>' +
+      '<button class="btn-ghost btn-act-copy" id="b-cp-all"><span class="act-icon">⧉</span><span>'+t('btnCopy')+'</span></button>' +
       (tg ? '<button class="btn-ghost btn-icon-sq" id="b-share" title="Share prompt" style="color:var(--acc-txt);border-color:rgba(47,129,247,.3)">✈️</button>' : '') +
       '<button class="btn-ghost btn-icon-sq" id="b-hist" title="'+t('histBtnTitle')+'">📜</button>' +
     '</div>';
