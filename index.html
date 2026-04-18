@@ -1798,7 +1798,7 @@ const I18N = {
     visionHint:    'fills fields from photo',
     visionDrop:    'click or drag & drop',
     visionRetry:   'New analysis',
-    visionErrSize: 'Image too large (max 4 MB)',
+    visionErrSize: 'Image too large (max {maxMB} MB)',
     visionErrType: 'Unsupported format — use JPEG, PNG or WebP',
     visionErrParse:'Could not read image data',
     histTitle: 'Prompt History', histEmpty: 'No history yet — generate a prompt first',
@@ -1858,7 +1858,7 @@ const I18N = {
     visionHint:    'заповнює поля з фото',
     visionDrop:    'клік · перетягни',
     visionRetry:   'Новий аналіз',
-    visionErrSize: 'Зображення занадто велике (макс 4 МБ)',
+    visionErrSize: 'Зображення занадто велике (макс {maxMB} МБ)',
     visionErrType: 'Непідтримуваний формат — JPEG, PNG або WebP',
     visionErrParse:'Не вдалось прочитати дані зображення',
     histTitle: 'Історія промптів', histEmpty: 'Історія порожня — спочатку згенеруйте промпт',
@@ -2216,7 +2216,21 @@ function buildUser() {
 function stripThink(text) {
   return text.replace(/<think>[\s\S]*?<\/think>/gi,'').replace(/Thought:[\s\S]*?(?=<[a-z]|$)/gi,'').replace(/\[Thinking[^\]]*\]/gi,'').trim();
 }
+/* ── extractTag ───────────────────────────────────────
+   Primary:  DOMParser (text/html) — лояльний до невідомих
+             тегів і символів типу & в тексті промпту.
+             .textContent повертає декодований plain text.
+   Fallback: regex — покриває edge-cases якщо DOM-парсер
+             повернув порожній результат.
+──────────────────────────────────────────────────── */
 function extractTag(text, tag) {
+  /* DOMParser primary */
+  try {
+    var doc = new DOMParser().parseFromString('<root>' + text + '</root>', 'text/html');
+    var el = doc.querySelector(tag);
+    if (el && el.textContent.trim()) return el.textContent.trim();
+  } catch(e) {}
+  /* regex fallback */
   var re = new RegExp('<' + tag + '[^>]*>([\\s\\S]*?)<\\/' + tag + '>', 'i');
   var m = text.match(re);
   return m ? m[1].trim() : null;
@@ -2414,6 +2428,14 @@ async function callVisionOnce(base64, mime) {
   return raw;
 }
 
+/* ─── VISION CONSTANTS ─────────────────────────────
+   Змінювати лише тут — використовується і в перевірці
+   розміру файлу, і в рядку помилки через t() замінник.
+   При зміні MAX_VISION_MB оновити також рядки
+   visionErrSize в обох мовних об'єктах.
+─────────────────────────────────────────────────── */
+var MAX_VISION_MB = 4;
+
 function extractVisionXML(raw) {
   if (!raw || typeof raw !== 'string') return '';
   var match = raw.match(/<vision>[\s\S]*<\/vision>/);
@@ -2450,7 +2472,7 @@ async function analyzeImage(file) {
   if (!S.apiKey.trim()) { S.error=t('errNoKey'); S.apiOpen=true; renderImmediate(); return; }
   var ALLOWED = ['image/jpeg','image/png','image/webp'];
   if (!ALLOWED.includes(file.type)) { S.error=t('visionErrType'); renderImmediate(); return; }
-  if (file.size > 4 * 1024 * 1024) { S.error=t('visionErrSize'); renderImmediate(); return; }
+  if (file.size > MAX_VISION_MB * 1024 * 1024) { S.error=t('visionErrSize').replace('{maxMB}', MAX_VISION_MB); renderImmediate(); return; }
 
   S.visionLoading=true; S.visionSuccess=false; S.error='';
   renderImmediate();
