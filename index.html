@@ -2578,21 +2578,29 @@ async function generate() {
    CLIPBOARD
 ═══════════════════════════════════════════════════ */
 function copyText(text, btn) {
-  navigator.clipboard.writeText(text).then(function() {
-    var orig = btn.textContent;
-    btn.textContent = '✓ ' + t('btnCopied'); btn.classList.add('copied');
-    setTimeout(function(){ btn.textContent=orig; btn.classList.remove('copied'); }, 2000);
-  }).catch(function() {
-    /* fallback для контекстів без clipboard API (HTTP, старі WebView) */
+  /* Якщо кнопка icon-only (btn-icon-sq) — тільки зелений flash,
+     без зміни textContent (інакше текст виїжджає за межі кнопки) */
+  var isIconOnly = btn && btn.classList.contains('btn-icon-sq');
+
+  function onSuccess() {
+    if (isIconOnly) {
+      btn.classList.add('copied');
+      setTimeout(function(){ btn.classList.remove('copied'); }, 2000);
+    } else {
+      var orig = btn.textContent;
+      btn.textContent = '✓ ' + t('btnCopied'); btn.classList.add('copied');
+      setTimeout(function(){ btn.textContent=orig; btn.classList.remove('copied'); }, 2000);
+    }
+  }
+
+  navigator.clipboard.writeText(text).then(onSuccess).catch(function() {
     try {
       var ta = document.createElement('textarea');
       ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
       document.body.appendChild(ta); ta.select();
       document.execCommand('copy');
       document.body.removeChild(ta);
-      var orig = btn.textContent;
-      btn.textContent = '✓ ' + t('btnCopied'); btn.classList.add('copied');
-      setTimeout(function(){ btn.textContent=orig; btn.classList.remove('copied'); }, 2000);
+      onSuccess();
     } catch(e) {}
   });
 }
@@ -3124,8 +3132,8 @@ function buildRightCol(mob, keyOk) {
 
     h += '<div class="output-actions">' +
       '<button class="btn-ghost btn-regen" id="b-regen"><span class="act-icon">↺</span> '+t('btnRegenerate')+'</button>' +
-      '<button class="btn-ghost btn-icon-sq" id="b-cp-all" title="'+t('btnCopy')+'">⧉</button>' +
-      (tg ? '<button class="btn-ghost btn-icon-sq" id="b-share" title="Share prompt" style="color:var(--acc-txt);border-color:rgba(47,129,247,.3)">✈️</button>' : '') +
+      '<button class="btn-ghost btn-icon-sq" id="b-cp-all" title="'+t('btnCopy')+'" style="color:var(--acc-txt);border-color:rgba(47,129,247,.3)">⧉</button>' +
+      (tg ? '<button class="btn-ghost btn-icon-sq" id="b-share" title="Share prompt" style="color:var(--acc-txt);border-color:rgba(47,129,247,.3)">↑</button>' : '') +
       '<button class="btn-ghost btn-icon-sq" id="b-hist" title="'+t('histBtnTitle')+'">📜</button>' +
     '</div>';
 
