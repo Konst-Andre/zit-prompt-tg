@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0D1117">
   <meta name="color-scheme" content="dark">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>ZIT Prompt Generator v3.8.0</title>
+  <title>LLM Prompt Generator</title>
   <!-- Telegram Mini App SDK — must be first script, before any own JS -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -91,7 +91,6 @@
       background: var(--bg2);
     }
     .hdr-brand { display: flex; flex-direction: column; gap: 4px; }
-    .app-meta { font-size: 11px; color: var(--t3); letter-spacing: .08em; opacity: .55; font-weight: 500; }
     .app-title { display: flex; align-items: baseline; gap: 10px; }
     .title-main {
       font-size: 22px; font-weight: 600; letter-spacing: -.01em; line-height: 1.15;
@@ -1758,7 +1757,7 @@ function buildNegative() {
 const I18N = {
   en: {
     tabGenerate: 'Create Prompt', tabOptimize: 'Improve Prompt',
-    tabOptimizeNote: '· refines for ZIT engine',
+    tabOptimizeNote: '· refines for AI models',
     lScene: 'Scene', lSubjectType: 'Subject Type',
     lSubjectHint: 'subject detail', lSceneHint: 'scene framing',
     lStyle: 'Visual Style', lStyleHint: 'see style details',
@@ -1773,11 +1772,11 @@ const I18N = {
     btnCopy: 'Copy All', btnAddLoRA: '+ Add LoRA',
     btnCopied: 'Copied',
     outPositive: 'Positive Prompt', outNegative: 'Negative Prompt',
-    outParams: 'ComfyUI Params', outChanged: 'What changed', outTip: 'ZIT tip',
+    outParams: 'Generation Params', outChanged: 'What changed', outTip: 'Tip',
     dbgEmpty: 'Press Generate — API request/response will appear here.',
     dbgCopyLog: 'Copy log',
     phFill: 'Fill in parameters\nand press Create Prompt',
-    phSub: '· ZIT/Lumina2',
+    phSub: '· AI Image Generation',
     mobParams: 'Params', mobOutput: 'Output',
     noneOpt: '— none —',
     lAtmosphere: 'Atmosphere', lPreview: 'Prompt Preview',
@@ -1785,7 +1784,7 @@ const I18N = {
     advNegLabel: 'Negative Prompt',
     advNegPlaceholder: 'Custom negative (auto if empty)',
     advReset: 'Reset', advApply: 'Apply',
-    advTooltip: 'Advanced Settings — ComfyUI config & Negative Prompt',
+    advTooltip: 'Advanced Settings & Negative Prompt',
     btnImproveThis: '↑ Improve this prompt',
     btnCopySubject: '⎘ Copy',
     btnClearTitle: 'Clear subject',
@@ -1814,12 +1813,12 @@ const I18N = {
     histDelItem: 'Delete', histCopyItem: 'Copy',
     apiTitle: 'Groq API Settings', apiKeyLabel: 'API Key', apiRemember: 'Remember key (localStorage)',
     apiModelLabel: 'Model', apiFreeKey: 'Free key:',
-    presetFix: 'Fix SDXL tags', presetZIT: 'Rewrite for ZIT', presetEnhance: 'Enhance details',
+    presetFix: 'Fix SDXL tags', presetZIT: 'Rewrite for AI', presetEnhance: 'Enhance details',
     lImproveCtx: 'Context',
   },
   ua: {
     tabGenerate: 'Створити', tabOptimize: 'Покращити',
-    tabOptimizeNote: '· адаптує для ZIT',
+    tabOptimizeNote: '· адаптує для AI моделей',
     lScene: 'Сцена', lSubjectType: 'Тип субʼєкта',
     lSubjectHint: 'деталі субʼєкта', lSceneHint: 'кадрування сцени',
     lStyle: 'Візуальний стиль', lStyleHint: 'деталі стилю',
@@ -1834,11 +1833,11 @@ const I18N = {
     btnCopy: 'Копіювати все', btnAddLoRA: '+ Додати LoRA',
     btnCopied: 'Скопійовано',
     outPositive: 'Позитивний промпт', outNegative: 'Негативний промпт',
-    outParams: 'Параметри ComfyUI', outChanged: 'Що змінилось', outTip: 'Порада ZIT',
+    outParams: 'Параметри генерації', outChanged: 'Що змінилось', outTip: 'Порада',
     dbgEmpty: 'Натисніть Генерувати — запит/відповідь API зʼявиться тут.',
     dbgCopyLog: 'Копіювати лог',
     phFill: 'Заповніть параметри\nта натисніть Створити',
-    phSub: '· ZIT/Lumina2',
+    phSub: '· AI Image Generation',
     mobParams: 'Параметри', mobOutput: 'Результат',
     noneOpt: '— немає —',
     lAtmosphere: 'Атмосфера', lPreview: 'Попередній перегляд',
@@ -1846,7 +1845,7 @@ const I18N = {
     advNegLabel: 'Негативний промпт',
     advNegPlaceholder: 'Власний негативний (авто якщо порожньо)',
     advReset: 'Скинути', advApply: 'Застосувати',
-    advTooltip: 'Розширені — конфіг ComfyUI та негативний промпт',
+    advTooltip: 'Розширені налаштування та негативний промпт',
     btnImproveThis: '↑ Покращити цей промпт',
     btnCopySubject: '⎘ Копіювати',
     btnClearTitle: 'Очистити тему', pvScene: 'Сцена', pvDetail: 'Деталь',
@@ -1874,7 +1873,7 @@ const I18N = {
     histDelItem: 'Видалити', histCopyItem: 'Копіювати',
     apiTitle: 'Налаштування Groq API', apiKeyLabel: 'API Ключ', apiRemember: 'Зберегти ключ (локальне сховище)',
     apiModelLabel: 'Модель', apiFreeKey: 'Безкоштовний ключ:',
-    presetFix: 'Fix SDXL tags', presetZIT: 'Rewrite for ZIT', presetEnhance: 'Enhance details',
+    presetFix: 'Fix SDXL tags', presetZIT: 'Rewrite for AI', presetEnhance: 'Enhance details',
     lImproveCtx: 'Контекст',
   }
 };
@@ -2086,14 +2085,17 @@ function doRandom(mode) {
    PROMPT BUILDERS
 ═══════════════════════════════════════════════════ */
 var SYSTEM_PROMPT = [
-  'You are a prompt engineer for ZIT (Z-Image Turbo), a Lumina2-based diffusion model with Qwen3-4B text encoder.',
+  'You are an expert prompt engineer for AI image generation.',
+  'Your task: build precise, layered, natural-language prompts that work across',
+  'modern generative models — diffusion (Flux, SDXL, Stable Diffusion 3, Z-Image Turbo, Z-Image Base)',
+  'and multimodal (Gemini Imagen, Qwen-VL, Midjourney-style).',
   '',
-  '=== ARCHITECTURE CONSTRAINTS (NON-NEGOTIABLE) ===',
-  '- CFG 1.5 optimal — never assume 6–8 like SDXL',
-  '- Steps 10–15 (turbo mode)',
-  '- Qwen3-4B reads full natural English prose — comma-spam tags are WRONG',
+  '=== PROMPT QUALITY RULES ===',
+  '- Write in natural English prose — avoid comma-spam tag lists',
   '- Forbidden tokens: masterpiece, best quality, highres, 8k, ultra-detailed',
-  '- LoRA trigger = single word only, placed first in positive prompt',
+  '  (These are SDXL-era artifacts that degrade modern model output)',
+  '- Be specific and visual — describe what the eye sees, not abstract quality claims',
+  '- One strong specific detail beats three vague quality adjectives',
   '',
   '=== LAYER SYSTEM — PRIORITY ORDER ===',
   'Build the prompt in this layer order (highest to lowest priority):',
@@ -2159,9 +2161,25 @@ var SYSTEM_PROMPT = [
   'Scene-appropriate negative, 10–18 words maximum, concrete errors only + universal tail.',
   '</negative>',
   '<notes>',
-  'One concise ZIT-specific tip (CFG, steps, LoRA strength, sampler, or prompt structure).',
-  'IMPORTANT: The tip must reference a specific element from THIS generated prompt — explain WHY this setting applies to this specific prompt, not a generic rule.',
-  'LANGUAGE: write this tip in {NOTES_LANG}.',
+  'Exactly 2 short tips specific to THIS generated prompt. Separate with a blank line.',
+  '',
+  'Tip 1 — WHY: explain why one specific element of this prompt works well visually.',
+  '  Reference the actual content (lighting, style, mood combination, etc.)',
+  '',
+  'Tip 2 — ENHANCE: suggest one concrete improvement to make the image stronger.',
+  '  Focus on whichever is most relevant:',
+  '    COMPOSITION — framing, rule of thirds, negative space, leading lines, depth',
+  '    ATMOSPHERE  — strengthen mood through light quality or environmental detail',
+  '    STYLE TECHNIQUE — technique that would reinforce this particular style',
+  '    COLOR PALETTE — dominant tones, contrast, or color harmony to add or adjust',
+  '    SUBJECT FOCUS — how to better draw attention to the subject in this scene',
+  '',
+  'Rules for both tips:',
+  '- Each tip: 1–2 sentences, direct and specific',
+  '- NO mention of CFG, steps, schedulers, LoRA weights, or any technical parameters',
+  '- Both tips must reference THIS prompt content — no generic advice',
+  '',
+  'LANGUAGE: write both tips in {NOTES_LANG}.',
   '</notes>',
   '',
   'Enhance mode only — add after <notes>:',
@@ -2169,7 +2187,7 @@ var SYSTEM_PROMPT = [
   '• 3–5 bullet points of improvements made',
   '• Start each with action verb: Removed / Rewrote / Adjusted / Harmonized / Added',
   '• Each bullet must quote or reference the specific text that was changed (e.g. Removed "masterpiece, best quality" — forbidden SDXL tokens)',
-  '• Reference ZIT-specific rationale where applicable',
+  '• Focus on visual and creative improvements, not model-specific parameters',
   'LANGUAGE: write these bullets in {NOTES_LANG}.',
   '</changes>',
   '',
@@ -2199,12 +2217,12 @@ function buildUser() {
   if (S.mode === 'enhance') {
     var subjEnhTok = buildSubjectTokens(S.subjectType, styleTok);
     var presetInstr = S.improvePreset === 'fix'     ? 'Priority: remove SDXL/Pony-specific tags, fix comma-separated token lists into natural prose.\n'
-                    : S.improvePreset === 'zit'     ? 'Priority: rewrite entirely as natural English prose optimized for Qwen3-4B/Lumina2, remove all SDXL tags.\n'
+                    : S.improvePreset === 'zit'     ? 'Priority: rewrite entirely as natural English prose optimized for modern LLM text encoders, remove all SDXL tags.\n'
                     : S.improvePreset === 'enhance' ? 'Priority: enrich with additional lighting, texture, atmosphere and compositional details.\n'
                     : '';
     var sceneCtx = sc.label ? '\nTarget scene: ' + sc.label : '';
     var styleCtx = st.label ? '\nTarget style: ' + st.label : '';
-    return 'Improve this prompt for ZIT/Lumina2. Fix SDXL tags, rewrite as natural prose for Qwen3-4B.\n' +
+    return 'Improve this prompt for AI image generation. Fix SDXL tags, rewrite as natural prose for modern text encoders.\n' +
       'UI language: ' + (S.lang === 'ua' ? 'Ukrainian — write <notes> and <changes> in Ukrainian' : 'English') + '\n' +
       presetInstr +
       'After <notes> add: <changes>bullet list of improvements</changes>\n' +
@@ -2215,7 +2233,7 @@ function buildUser() {
   var subjTok  = buildSubjectTokens(S.subjectType, styleTok);
   var genreVal = (GENRES.find(function(x){return x.label===S.genre;})||{value:''}).value || 'none';
   var genreMod = (S.genre && GENRE_MODS[S.genre]) ? GENRE_MODS[S.genre] : 'none';
-  return 'Generate ZIT prompt:\nSubject (translate to English if needed): ' + S.subject +
+  return 'Generate image prompt:\nSubject (translate to English if needed): ' + S.subject +
     '\nUI language: ' + (S.lang === 'ua' ? 'Ukrainian — write <notes> in Ukrainian' : 'English') +
     (subjTok  ? '\nSubject detail: ' + subjTok : '') +
     '\nScene: ' + (sc.label||S.scene) + ' | Detail: ' + (sc.detail||'high detail') +
@@ -2811,10 +2829,9 @@ function buildHeader(mob, keyOk) {
   var langLabel = S.lang === 'ua' ? '🌐 EN' : '🌐 UA';
   return '<div class="hdr">' +
     '<div class="hdr-brand">' +
-      '<div class="app-meta">ZIT · Lumina2 · Qwen3-4B</div>' +
       '<div class="app-title">' +
-        '<span class="title-main">Prompt Generator</span>' +
-        '<span class="title-version">v3.8.0</span>' +
+        '<span class="title-main">LLM Prompt Generator</span>' +
+        '<span class="title-version">v1.0</span>' +
       '</div>' +
     '</div>' +
     '<div class="hdr-acts">' +
@@ -3104,7 +3121,7 @@ function buildRightCol(mob, keyOk) {
         '<button class="btn-primary" id="b-open-api" style="max-width:240px;margin-top:8px">⚙ Open API Settings</button></div>';
     } else {
       h += '<div class="ph"><div class="ph-icon">◎</div><div class="ph-text">'+t('phFill').replace('\n','<br>')+'</div>' +
-        '<div class="ph-sub">'+esc((GROQ_MODELS.find(function(m){return m.id===S.model;})||{name:S.model}).name)+' · ZIT/Lumina2</div></div>';
+        '<div class="ph-sub">'+esc((GROQ_MODELS.find(function(m){return m.id===S.model;})||{name:S.model}).name)+' · AI Image Generation</div></div>';
     }
   }
 
