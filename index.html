@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <meta name="theme-color" content="#0D1117">
+  <meta name="theme-color" content="#070D18">
   <meta name="color-scheme" content="dark">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>LLM Prompt Generator</title>
@@ -11,7 +11,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -19,13 +19,13 @@
        DESIGN TOKENS
     ═══════════════════════════════════════ */
     :root {
-      --bg:       #0D1117;
-      --bg2:      #161C24;
-      --bg3:      #070B0F;
-      --bg4:      #232E42;
+      --bg:       #070D18;
+      --bg2:      #0C1424;
+      --bg3:      #040810;
+      --bg4:      #172030;
 
-      --bdr:      #2A3140;
-      --bdr2:     #3E4D62;
+      --bdr:      #1E2D42;
+      --bdr2:     #2E4060;
       --bdr-light: rgba(255,255,255,.07);
 
       --t1:  #ECF2F8;
@@ -33,11 +33,16 @@
       --t3:  #7A8694;
       --t4:  #505860;
 
-      --acc:      #2F81F7;
-      --acc-hi:   #4696FF;
-      --acc-lo:   #1B6FE5;
-      --acc-bg:   #0C1E3A;
-      --acc-txt:  #79B8FF;
+      --acc:      #4DA6FF;
+      --acc-hi:   #7EC8FF;
+      --acc-lo:   #2F81F7;
+      --acc-bg:   #071428;
+      --acc-txt:  #7EC8FF;
+
+      --cyan:     #38BDF8;
+      --cyan-dim: rgba(56,189,248,.12);
+      --cyan-bdr: rgba(56,189,248,.28);
+      --cyan-txt: #67D5FF;
 
       --red:      #F85149;
       --red-bg:   #1A0F0E;
@@ -58,12 +63,15 @@
       --tr: 0.15s ease;
     }
 
-    html { background: #0D1117; }
+    html { background: #070D18; }
 
     html, body {
-      background: linear-gradient(180deg, #111720 0%, #0D1117 40%, #080C10 100%);
+      background:
+        radial-gradient(ellipse 700px 320px at 25% -8%, rgba(47,129,247,.30), transparent 60%),
+        radial-gradient(ellipse 480px 220px at 90% 4%,  rgba(0,200,180,.14),  transparent 60%),
+        #070D18;
       color: var(--t1);
-      font-family: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       font-size: 14px;
       line-height: 1.55;
       min-height: 100vh;
@@ -153,8 +161,8 @@
     }
     .tab-btn.active {
       color: var(--t1);
-      background: linear-gradient(180deg, rgba(47,129,247,.18), rgba(47,129,247,.06));
-      border-color: rgba(47,129,247,.4);
+      background: rgba(77,166,255,.15);
+      border-color: rgba(77,166,255,.4);
       font-weight: 600;
     }
 
@@ -403,18 +411,18 @@
     ═══════════════════════════════════════ */
     .btn-random {
       padding: 13px 16px;
-      background: linear-gradient(180deg, #2A3548 0%, #1E2C3E 100%);
+      background: rgba(255,255,255,.04);
       border: 1px solid var(--bdr2); color: var(--t2);
-      border-radius: var(--r); font-size: 16px; font-family: inherit;
+      border-radius: var(--r); font-size: 16px; font-family: 'DM Sans', inherit;
       cursor: pointer; flex-shrink: 0;
       transition: background var(--tr), border-color var(--tr), box-shadow var(--tr),
                   color var(--tr), transform 0.12s ease;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 1px 3px rgba(0,0,0,.2);
     }
     .btn-random:hover {
-      background: linear-gradient(180deg, #303F58 0%, #263348 100%);
+      background: rgba(77,166,255,.1);
       border-color: var(--acc); color: var(--acc-txt);
-      box-shadow: 0 0 12px rgba(47,129,247,.2), inset 0 1px 0 rgba(255,255,255,.1);
+      box-shadow: 0 0 12px rgba(77,166,255,.18), inset 0 1px 0 rgba(255,255,255,.06);
     }
     .btn-random:active { transform: scale(0.95); }
     .btn-random.fired { animation: randomFlash 200ms ease-out; }
@@ -487,9 +495,9 @@
     }
     .sel-btn:active { transform: scale(0.97); }
     .sel-btn.active {
-      background: linear-gradient(180deg, rgba(47,129,247,.22), rgba(47,129,247,.08));
-      border-color: var(--acc); color: #fff; font-weight: 600;
-      box-shadow: 0 0 0 1px rgba(47,129,247,.2), 0 2px 6px rgba(47,129,247,.1);
+      background: var(--cyan-dim);
+      border-color: var(--cyan); color: #fff; font-weight: 600;
+      box-shadow: 0 0 0 1px rgba(56,189,248,.18), 0 2px 6px rgba(56,189,248,.1);
     }
 
     /* Group container */
@@ -632,7 +640,7 @@
     .preview-token.subject-tok {
       font-size: 12px; color: #D0E8FF;
       background: rgba(47,129,247,.15); border-color: rgba(47,129,247,.35);
-      font-family: 'Outfit', sans-serif;
+      font-family: 'DM Sans', sans-serif;
       white-space: normal; word-break: break-word;
       opacity: 1; max-width: 100%;
     }
