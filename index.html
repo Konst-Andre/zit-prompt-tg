@@ -69,6 +69,7 @@
       background:
         radial-gradient(ellipse 700px 320px at 25% -8%, rgba(47,129,247,.48), transparent 60%),
         radial-gradient(ellipse 480px 220px at 90% 4%,  rgba(0,200,180,.26),  transparent 60%),
+        radial-gradient(ellipse 900px 500px at 50% 50%, rgba(47,129,247,.07),  transparent 70%),
         radial-gradient(ellipse 600px 300px at 80% 100%, rgba(47,129,247,.32), transparent 55%),
         radial-gradient(ellipse 400px 200px at 10% 95%,  rgba(0,180,220,.20),  transparent 60%),
         #070D18;
@@ -1033,14 +1034,14 @@
       position: relative;
       display: flex; align-items: center; justify-content: center;
       padding: 13px 15px;
-      background: linear-gradient(180deg, #1E2A3E 0%, #151E2D 100%);
+      background: rgba(255,255,255,.04);
       border: 1px solid var(--bdr2); color: var(--t2);
       border-radius: var(--r); font-size: 17px; font-family: inherit;
       cursor: pointer; flex-shrink: 0;
       transition: background var(--tr), border-color var(--tr), box-shadow var(--tr), color var(--tr), transform 0.12s ease;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 1px 3px rgba(0,0,0,.2);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 1px 3px rgba(0,0,0,.2);
     }
-    .btn-adv:hover { background: linear-gradient(180deg, #263348 0%, #1D2A3F 100%); border-color: var(--acc); color: var(--acc-txt); box-shadow: 0 0 10px rgba(47,129,247,.18); }
+    .btn-adv:hover { background: rgba(77,166,255,.1); border-color: var(--acc); color: var(--acc-txt); box-shadow: 0 0 12px rgba(77,166,255,.18), inset 0 1px 0 rgba(255,255,255,.06); }
     .btn-adv:active { transform: scale(0.95); }
     .btn-adv.is-changed { border-color: var(--amber-bdr); color: var(--amber-txt); background: var(--amber-bg); }
     .btn-adv.is-changed:hover { border-color: var(--amber); box-shadow: 0 0 10px rgba(227,179,65,.18); }
@@ -3145,6 +3146,7 @@ function buildHeader(mob, keyOk) {
     '</div>' +
     '<div class="hdr-acts">' +
       '<div class="pill btn ' + pillCls + '" id="b-api" title="' + esc(pillTitle) + '"><span class="dot"></span>' + pillTxt + '</div>' +
+      '<button class="pill btn" id="b-preset" title="' + (S.lang==='ua' ? 'Поділитись пресетом' : 'Share preset') + '" style="padding:0 10px;font-size:13px">🔗</button>' +
       '<div class="pill btn pill-lang" id="b-lang" title="Switch UI language">' + langLabel + '</div>' +
     '</div>' +
   '</div>';
@@ -3847,6 +3849,7 @@ function attachEvents() {
   document.querySelectorAll('.genre-tok').forEach(function(el){
     el.addEventListener('click', function(){ el.classList.toggle('expanded'); });
   });
+  on('b-preset', 'click', function(){ exportPreset(); });
   on('b-lang',      'click', function(){
     var btn = document.getElementById('b-lang');
     S.lang = S.lang === 'en' ? 'ua' : 'en';
@@ -4314,10 +4317,50 @@ function attachSwipe() {
 }
 
 /* ═══════════════════════════════════════════════════
-   INIT
+   SHAREABLE PRESET URL
 ═══════════════════════════════════════════════════ */
-loadKey();
+function exportPreset() {
+  try {
+    var p = {
+      sc: S.scene,       st: S.style,      su: S.subjectType,
+      li: S.lighting,    mo: S.mood,        ge: S.genre,
+      re: S.resolution,  sa: S.sampler,     sh: S.scheduler,
+      cf: S.cfg,         sp: S.steps
+    };
+    var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(p)))).replace(/=+$/,'');
+    var url = location.origin + location.pathname + '?p=' + encoded;
+    if (tg) {
+      tg.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(url) +
+        '&text=' + encodeURIComponent('🎨 My ZIT Prompt preset'));
+    } else {
+      copyText(url, document.getElementById('b-preset'));
+    }
+  } catch(e) {}
+}
+
+function importPresetFromURL() {
+  try {
+    var m = location.search.match(/[?&]p=([^&]+)/);
+    if (!m) return;
+    var p = JSON.parse(decodeURIComponent(escape(atob(m[1]))));
+    if (p.sc && SCENES.find(function(x){return x.id===p.sc;}))   S.scene       = p.sc;
+    if (p.st && STYLES.find(function(x){return x.id===p.st;}))   S.style       = p.st;
+    if (p.su && SUBJECTS.find(function(x){return x.id===p.su;})) S.subjectType = p.su;
+    if (p.li !== undefined) S.lighting   = p.li;
+    if (p.mo !== undefined) S.mood       = p.mo;
+    if (p.ge !== undefined) S.genre      = p.ge;
+    if (p.re !== undefined) S.resolution = p.re;
+    if (p.sa !== undefined) S.sampler    = p.sa;
+    if (p.sh !== undefined) S.scheduler  = p.sh;
+    if (p.cf !== undefined) S.cfg        = p.cf;
+    if (p.sp !== undefined) S.steps      = p.sp;
+    saveState();
+  } catch(e) {}
+}
+
+
 loadState();
+importPresetFromURL();
 render();
 var _rt;
 window.addEventListener('resize', function(){ clearTimeout(_rt); _rt=setTimeout(render,150); });
