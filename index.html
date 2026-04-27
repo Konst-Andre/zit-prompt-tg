@@ -121,7 +121,24 @@
     }
     .pill.btn { cursor: pointer; transition: border-color var(--tr), color var(--tr), background var(--tr); }
     .pill.btn:hover { border-color: var(--bdr2); color: var(--t2); }
-    .pill-lang { min-width: 72px; justify-content: center; }
+    .lang-toggle {
+      display: inline-flex; border-radius: 20px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      overflow: hidden; padding: 2px; gap: 0;
+      cursor: pointer;
+    }
+    .lang-toggle span {
+      padding: 4px 11px; border-radius: 16px;
+      font-size: 12px; font-weight: 600; color: #7a8694;
+      transition: background .15s, color .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .lang-toggle span.lang-on {
+      background: rgba(56,189,248,.18);
+      border: 1px solid rgba(56,189,248,.4);
+      color: #67d5ff;
+    }
     .pill.p-active { border-color: var(--amber-bdr); color: var(--amber-txt); background: var(--amber-bg); }
     @keyframes pillDotPulse {
       0%,100% { opacity: 1; transform: scale(1); }
@@ -440,7 +457,8 @@
       100% { box-shadow: 0 0 0 0 rgba(47,129,247,.0); }
     }
 
-    .pill-lang-fired { animation: langFlash 380ms ease-out; }
+    /* lang-toggle fired flash */
+    .lang-toggle.fired { animation: langFlash 280ms ease-out; }
     @keyframes langFlash {
       0%   { border-color: var(--bdr); color: var(--t3); transform: scale(1); }
       25%  { border-color: var(--acc); color: var(--acc-txt); transform: scale(0.93); }
@@ -3124,8 +3142,7 @@ function patch(target, immediate) {
 ═══════════════════════════════════════════════════ */
 
 function buildHeader(mob, keyOk) {
-  var langLabel = S.lang === 'ua' ? '🌐 EN' : '🌐 UA';
-  /* Proxy state має пріоритет над key state */
+  var uaOn = S.lang === 'ua';
   var pillCls, pillTxt, pillTitle = '';
   if (PROXY_URL && _proxyState === 'warming') {
     pillCls = 'p-active'; pillTxt = 'Warming up…';
@@ -3137,6 +3154,7 @@ function buildHeader(mob, keyOk) {
     pillCls = keyOk ? 'p-ok' : 'p-miss';
     pillTxt = keyOk ? 'Groq ✓' : 'API Key?';
   }
+  var uaOn = S.lang === 'ua';
   return '<div class="hdr">' +
     '<div class="hdr-brand">' +
       '<div class="app-title">' +
@@ -3146,8 +3164,16 @@ function buildHeader(mob, keyOk) {
     '</div>' +
     '<div class="hdr-acts">' +
       '<div class="pill btn ' + pillCls + '" id="b-api" title="' + esc(pillTitle) + '"><span class="dot"></span>' + pillTxt + '</div>' +
-      '<button class="pill btn" id="b-preset" title="' + (S.lang==='ua' ? 'Поділитись пресетом' : 'Share preset') + '" style="padding:0 10px;font-size:13px">🔗</button>' +
-      '<div class="pill btn pill-lang" id="b-lang" title="Switch UI language">' + langLabel + '</div>' +
+      '<div class="lang-toggle" id="b-lang" title="Switch UI language">' +
+        '<span class="' + (uaOn ? 'lang-on' : '') + '">UA</span>' +
+        '<span class="' + (!uaOn ? 'lang-on' : '') + '">EN</span>' +
+      '</div>' +
+      '<button class="pill btn" id="b-preset" title="' + (uaOn ? 'Поділитись пресетом' : 'Share preset') + '" style="padding:0 10px;width:32px;justify-content:center">' +
+        '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' +
+          '<circle cx="12" cy="3" r="1.5"/><circle cx="4" cy="8" r="1.5"/><circle cx="12" cy="13" r="1.5"/>' +
+          '<line x1="5.4" y1="7.1" x2="10.6" y2="3.9"/><line x1="5.4" y1="8.9" x2="10.6" y2="12.1"/>' +
+        '</svg>' +
+      '</button>' +
     '</div>' +
   '</div>';
 }
@@ -3850,17 +3876,11 @@ function attachEvents() {
     el.addEventListener('click', function(){ el.classList.toggle('expanded'); });
   });
   on('b-preset', 'click', function(){ exportPreset(); });
-  on('b-lang',      'click', function(){
-    var btn = document.getElementById('b-lang');
+  on('b-lang', 'click', function(){
     S.lang = S.lang === 'en' ? 'ua' : 'en';
     try { localStorage.setItem('zit_lang', S.lang); } catch(e) {}
     saveState();
-    if (btn) {
-      btn.classList.remove('pill-lang-fired'); void btn.offsetWidth; btn.classList.add('pill-lang-fired');
-      setTimeout(render, 380);
-    } else {
-      render();
-    }
+    render();
   });
 
   document.querySelectorAll('[data-pane]').forEach(function(el){ el.addEventListener('click', function(){ S.mobilePane=el.dataset.pane; render(); }); });
