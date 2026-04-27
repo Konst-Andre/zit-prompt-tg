@@ -228,6 +228,16 @@
       background-clip: text;
     }
     .hint { font-size: 11px; color: var(--t4); }
+
+    /* Textarea with inner counter */
+    .textarea-wrap { position: relative; }
+    .textarea-wrap textarea { padding-bottom: 22px; }
+    .sub-count-inner {
+      position: absolute; bottom: 12px; right: 10px;
+      font-size: 10px; color: var(--t4); pointer-events: none;
+      font-family: 'DM Sans', sans-serif; line-height: 1;
+    }
+    .sub-count-inner.warn { color: var(--amber); }
     .grp-lbl {
       font-size: 10px; font-weight: 700; color: var(--t2); letter-spacing: .14em;
       text-transform: uppercase; margin-bottom: var(--s2); margin-top: var(--s3);
@@ -336,25 +346,27 @@
     .btn-text:active { transform: scale(0.97); }
 
     .btn-copy {
-      padding: 4px 11px; background: transparent; border: 1px solid var(--bdr);
-      color: var(--t4); border-radius: var(--r-sm); font-size: 11px;
-      font-weight: 600; letter-spacing: .04em; white-space: nowrap;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; padding: 0;
+      background: transparent; border: 1px solid var(--bdr);
+      border-radius: 20px; color: var(--t3); flex-shrink: 0;
+      transition: border-color var(--tr), color var(--tr), background var(--tr), transform .12s;
     }
-    .btn-copy:hover { border-color: var(--acc); color: var(--acc-txt); background: var(--acc-bg); }
-    .btn-copy:active { transform: scale(0.95); }
+    .btn-copy:hover { border-color: var(--bdr2); color: var(--t2); background: rgba(255,255,255,.05); }
+    .btn-copy:active { transform: scale(0.92); }
     .btn-copy.copied { border-color: var(--green-bdr); color: var(--green-txt); background: var(--green-bg); }
     .btn-copy.cleared { border-color: var(--red-bdr); color: var(--red-txt); background: var(--red-bg); }
 
     .btn-clr {
-      padding: 4px 11px; background: transparent;
-      border: 1px solid var(--red-bdr); color: var(--red-txt);
-      border-radius: var(--r-sm); font-size: 11px;
-      font-weight: 600; letter-spacing: .04em; white-space: nowrap;
-      opacity: .6; transition: opacity .15s, background .15s, border-color .15s;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; padding: 0;
+      background: transparent; border: 1px solid var(--bdr);
+      border-radius: 20px; color: var(--t3); flex-shrink: 0; opacity: .7;
+      transition: border-color var(--tr), color var(--tr), background var(--tr), opacity var(--tr), transform .12s;
     }
-    .btn-clr:hover { opacity: 1; background: var(--red-bg); border-color: var(--red-txt); }
-    .btn-clr:active { transform: scale(0.95); opacity: 1; }
-    .btn-clr.cleared { opacity: 1; background: var(--red-bg); border-color: var(--red-txt); }
+    .btn-clr:hover { opacity: 1; border-color: var(--red-bdr); color: var(--red-txt); background: var(--red-bg); }
+    .btn-clr:active { transform: scale(0.92); opacity: 1; }
+    .btn-clr.cleared { opacity: 1; background: var(--red-bg); border-color: var(--red-bdr); color: var(--red-txt); }
 
     /* ═══════════════════════════════════════
        OUTPUT ACTIONS — v2.0: Regenerate primary
@@ -369,6 +381,77 @@
       border-top: 1px solid rgba(255,255,255,.06);
       flex-wrap: nowrap;
     }
+
+    /* ═══ NEW OUTPUT COMPONENTS ═══ */
+    .result-hero { margin-bottom: var(--s3); }
+    .result-hero-hdr {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: var(--s2); font-size: 11px;
+    }
+    .result-status { color: var(--green-txt); font-weight: 600; letter-spacing: .04em; }
+    .result-meta   { color: var(--t4); font-family: 'JetBrains Mono', monospace; }
+    .result-primary-actions {
+      display: flex; gap: var(--s2); margin-top: var(--s3);
+    }
+    .btn-copy-primary {
+      flex: 1; height: 44px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-size: 14px; font-weight: 600;
+    }
+    .btn-regen-compact {
+      width: 44px; height: 44px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; border-radius: var(--r);
+      border-color: rgba(47,129,247,.3) !important;
+      color: var(--acc-txt) !important;
+      background: rgba(47,129,247,.06) !important;
+      transition: background var(--tr), border-color var(--tr), transform .1s;
+    }
+    .btn-regen-compact:hover { background: rgba(47,129,247,.16) !important; border-color: var(--acc) !important; }
+    .btn-regen-compact:active { transform: scale(0.95); }
+    /* collapsible details */
+    .result-details {
+      margin-bottom: var(--s2); border: 1px solid var(--bdr);
+      border-radius: var(--r-md); background: rgba(7,11,15,.4); overflow: hidden;
+    }
+    .result-details[open] { background: var(--bg2); border-color: var(--bdr2); }
+    .result-details-sum {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 12px; cursor: pointer;
+      font-size: 12px; color: var(--t2); font-weight: 500;
+      list-style: none; gap: 8px;
+    }
+    .result-details-sum::-webkit-details-marker { display: none; }
+    .result-details-sum::before {
+      content: '▸'; color: var(--t4); flex-shrink: 0;
+      transition: transform .2s ease; display: inline-block;
+    }
+    .result-details[open] .result-details-sum::before { transform: rotate(90deg); }
+    .result-details-count { color: var(--t4); font-weight: 400; }
+    .result-details-body  { padding: 0 12px 12px; }
+    .btn-copy-inline {
+      background: transparent; border: 1px solid var(--bdr);
+      color: var(--t3); padding: 4px 8px; border-radius: var(--r-sm);
+      cursor: pointer; display: flex; align-items: center; flex-shrink: 0;
+      transition: border-color var(--tr), color var(--tr);
+    }
+    .btn-copy-inline:hover { border-color: var(--bdr2); color: var(--t2); }
+    .btn-copy-inline.copied { border-color: var(--green-bdr); color: var(--green-txt); background: var(--green-bg); }
+    /* secondary actions row */
+    .result-secondary-actions {
+      display: flex; gap: var(--s2); justify-content: flex-end;
+      margin: var(--s3) 0; padding-top: var(--s2);
+      border-top: 1px solid var(--bdr-light);
+    }
+    .result-secondary-actions .btn-icon-sq { width: 36px; height: 36px; opacity: .7; }
+    .result-secondary-actions .btn-icon-sq:hover { opacity: 1; }
+    /* footer refine */
+    .result-footer {
+      margin-top: var(--s5); padding-top: var(--s4);
+      border-top: 1px dashed var(--bdr); text-align: center;
+    }
+    .result-footer-hint { font-size: 11px; color: var(--t4); margin-bottom: 8px; letter-spacing: .03em; }
+    .result-refine-btn { font-size: 12px; padding: 8px 18px; color: var(--acc-txt); border-color: rgba(47,129,247,.3); }
     /* icon-only compact buttons (Share + History) */
     .btn-icon-sq {
       flex: 0 0 auto;
@@ -573,6 +656,15 @@
       margin-bottom: var(--s2); padding-bottom: 6px;
       border-bottom: 1px solid var(--bdr);
     }
+    .config-add-st {
+      display: block; width: 100%; background: transparent;
+      border: 1px dashed var(--bdr); color: var(--t4);
+      padding: 9px; border-radius: var(--r); font-size: 11px;
+      letter-spacing: .04em; cursor: pointer; font-family: inherit;
+      margin-bottom: 5px; text-align: center;
+      transition: border-color var(--tr), color var(--tr);
+    }
+    .config-add-st:hover { border-color: var(--bdr2); color: var(--t3); }
     .accord-section {
       border: 1px solid var(--bdr); border-radius: var(--r-md);
       margin-bottom: 5px; overflow: hidden; background: var(--bg2);
@@ -963,11 +1055,12 @@
     .output-main .out-txt.accent { background: #05080C; border-color: rgba(47,129,247,.45); }
 
     .neg-preview {
-      padding: var(--s2) var(--s3); background: var(--bg); border: 1px solid #1E2429;
-      border-radius: var(--r-sm); margin-bottom: var(--s3);
+      padding: var(--s2) var(--s3);
+      background: var(--bg2); border: 1px solid var(--bdr);
+      border-radius: var(--r-md); margin-bottom: var(--s3);
       display: flex; align-items: flex-start; gap: var(--s2);
     }
-    .neg-preview-label { font-size: 10px; color: var(--t4); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+    .neg-preview-label { font-size: 9px; color: var(--t3); letter-spacing: .12em; text-transform: uppercase; font-weight: 700; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
     .neg-preview-text { font-size: 11px; color: var(--t3); font-family: 'JetBrains Mono', monospace; line-height: 1.5; }
 
     .lora-row { display: flex; gap: var(--s2); margin-bottom: var(--s2); align-items: center; }
@@ -1257,6 +1350,21 @@
       .hdr { padding: var(--s3) var(--s4); }
       .pane-hidden { display: none; }
       .pp-items { white-space: normal; overflow: visible; text-overflow: unset; }
+      /* Sticky preview — завжди видно під час налаштування */
+      #preview-card-wrap:not(:empty) {
+        position: sticky;
+        bottom: 0;
+        z-index: 5;
+        margin: 0 calc(var(--s4) * -1);
+        padding: 8px var(--s4);
+        background: rgba(7,13,24,.94);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-top: 1px solid var(--bdr);
+      }
+      #preview-card-wrap:not(:empty) .preview-card {
+        margin: 0; border: none; background: transparent; padding: 0;
+      }
     }
     @media (min-width: 681px) { .mob-mode-sw { display: none; } }
 
@@ -2123,6 +2231,8 @@ var S = {
   customNeg:'',
   loading:false, visionLoading:false, visionSuccess:false, result:null, error:'', dbgLog:null,
   rndMode:'normal',
+  outNegOpen: false,
+  outParamsOpen: false,
   subjectHistory:[],
   accordOpen:{ scene:false, subjectType:false, style:false },
   atmOpen:{ lighting:false, mood:false, genre:false },
@@ -2870,12 +2980,14 @@ async function generate() {
 function copyText(text, btn) {
   /* Якщо кнопка icon-only (btn-icon-sq) — тільки зелений flash,
      без зміни textContent (інакше текст виїжджає за межі кнопки) */
-  var isIconOnly = btn && btn.classList.contains('btn-icon-sq');
+  var isIconOnly = btn && (btn.classList.contains('btn-icon-sq') || btn.classList.contains('btn-copy'));
 
   function onSuccess() {
     if (isIconOnly) {
+      var origHTML = btn.innerHTML;
+      btn.innerHTML = SVG_CHECK;
       btn.classList.add('copied');
-      setTimeout(function(){ btn.classList.remove('copied'); }, 2000);
+      setTimeout(function(){ btn.innerHTML = origHTML; btn.classList.remove('copied'); }, 2000);
     } else {
       var orig = btn.textContent;
       btn.textContent = '✓ ' + t('btnCopied'); btn.classList.add('copied');
@@ -3248,6 +3360,11 @@ var ATM_ICONS = {
   genre:    '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5l6-3.5 6 3.5-6 3.5z"/><path d="M2 10l6 3.5 6-3.5"/></svg>',
 };
 var SVG_CHEV = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,4 6,8 10,4"/></svg>';
+var SVG_COPY = '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h8"/></svg>';
+var SVG_CLR  = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>';
+var SVG_CHECK= '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,8 6,12 14,4"/></svg>';
+var SVG_HIST = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><polyline points="8,5 8,8 10,10"/><path d="M2.5 4.5A6 6 0 0 1 8 2"/></svg>';
+var SVG_CAM  = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5.5a1 1 0 0 1 1-1h1.5l1-2h5l1 2H14a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1z"/><circle cx="8" cy="9" r="2.3"/></svg>';
 
 function buildLeftCol(mob) {
   var pHide = mob && S.mobilePane !== 'params';
@@ -3277,24 +3394,26 @@ function buildLeftCol(mob) {
         ? '<div class="vs-c-loading"><span class="vs-spin">⟳</span><span class="vs-ltxt">'+t('visionLoading')+'</span></div>'
         : S.visionSuccess
           ? '<div class="vs-c-success"><span class="vs-ok">✓ '+t('visionFill')+'</span><button class="vs-retry" id="b-vision-retry">↺ '+t('visionRetry')+'</button></div>'
-          : '<div class="vs-c-zone" id="b-vision"><span class="vs-c-icon">📸</span><div><div class="vs-c-lbl">'+t('visionBtn')+'</div><div class="vs-c-sub">'+t('visionHint')+'</div></div><span class="vs-c-right">'+t('visionDrop').replace(' & ','<br>&nbsp;').replace(' · ','<br>')+'</span></div>'
+          : '<div class="vs-c-zone" id="b-vision"><span class="vs-c-icon">'+SVG_CAM+'</span><div><div class="vs-c-lbl">'+t('visionBtn')+'</div><div class="vs-c-sub">'+t('visionHint')+'</div></div><span class="vs-c-right">'+t('visionDrop').replace(' & ','<br>&nbsp;').replace(' · ','<br>')+'</span></div>'
       );
     h += '<div class="prompt-main">' +
       '<div class="field">' +
         '<div class="f-hdr">' +
           '<label class="lbl">'+t('lPrompt')+'</label>' +
           '<div style="display:flex;align-items:center;gap:6px">' +
-            '<span class="hint">'+t('lPromptHint')+'</span>' +
-            '<button class="btn-copy" id="b-cp-sub" style="opacity:.6'+(S.subject.trim()?'':';display:none')+'">'+t('btnCopySubject')+'</button>' +
-            '<button class="btn-clr" id="b-clr-sub" title="'+t('btnClearTitle')+'"'+(S.subject.trim()?'':' style="display:none"')+'>✕</button>' +
-            (loadHistory().length ? '<button class="btn-copy" id="b-hist-subj" style="opacity:.7;font-size:12px" title="'+t('histBtnTitle')+'">📜</button>' : '') +
+            '<button class="btn-copy" id="b-cp-sub" title="'+t('btnCopySubject')+'"'+(S.subject.trim()?'':' style="display:none"')+'>'+SVG_COPY+'</button>' +
+            '<button class="btn-clr" id="b-clr-sub" title="'+t('btnClearTitle')+'"'+(S.subject.trim()?'':' style="display:none"')+'>'+SVG_CLR+'</button>' +
+            (loadHistory().length ? '<button class="btn-copy" id="b-hist-subj" title="'+t('histBtnTitle')+'">'+SVG_HIST+'</button>' : '') +
           '</div>' +
         '</div>' +
-        '<textarea id="inp-sub" rows="3" placeholder="e.g: '+esc(stPh)+'&#10;• your own idea here">'+esc(S.subject)+'</textarea>' +
+        '<div class="textarea-wrap">' +
+          '<textarea id="inp-sub" rows="3" placeholder="e.g: '+esc(stPh)+'&#10;• your own idea here">'+esc(S.subject)+'</textarea>' +
+          '<span class="sub-count-inner'+(S.subject.length > 300 ? ' warn' : '')+'">' + (S.subject.length || '') + '</span>' +
+        '</div>' +
         histHtml +
         visionStripHtml +
-        '<div style="text-align:right;font-size:10px;margin-top:8px;opacity:.7">' +
-          '<span id="sub-count" style="color:' + (S.subject.length > 300 ? 'var(--amber)' : 'var(--t3)') + '">' + (S.subject.length || '') + '</span>' +
+        '<div style="text-align:right;font-size:10px;margin-top:10px;margin-bottom:4px;opacity:.6">' +
+          '<span class="hint">'+t('lPromptHint')+'</span>' +
         '</div>' +
       '</div>' +
     '</div>';
@@ -3419,9 +3538,9 @@ function buildLeftCol(mob) {
 
     h += '<div class="config-block">' +
       '<div class="config-title">Configuration</div>' +
-      buildAccord('scene',       'lScene',       sceneVal,  sceneHtml) +
-      buildAccord('subjectType', 'lSubjectType', subjVal,   '<div class="pill-row" style="margin-bottom:0">'+subjPills+'</div>') +
       buildAccord('style',       'lStyle',       styleVal,  styleHtml) +
+      buildAccord('scene',       'lScene',       sceneVal,  sceneHtml) +
+      buildAccord('subjectType', 'lSubjectType', subjVal, '<div class="pill-row" style="margin-bottom:0">'+subjPills+'</div>') +
     '</div>';
 
     /* ATMOSPHERE — 3 картки + одна панель нижче */
@@ -3467,8 +3586,8 @@ function buildLeftCol(mob) {
         '<label class="enhance-lbl lbl">'+t('lExisting')+'</label>' +
         '<div style="display:flex;align-items:center;gap:6px">' +
           '<span class="hint">'+t('lExistingHint')+' &nbsp;·&nbsp; <span style="color:'+ecColor+'">'+ec+'/1500</span></span>' +
-          '<button class="btn-copy" id="b-cp-exist" style="opacity:.6'+(S.existing.trim()?'':';display:none')+'">'+t('btnCopySubject')+'</button>' +
-          '<button class="btn-clr" id="b-clr-exist" title="'+t('btnClearTitle')+'"'+(S.existing.trim()?'':' style="display:none"')+'>✕</button>' +
+          '<button class="btn-copy" id="b-cp-exist" title="'+t('btnCopySubject')+'"'+(S.existing.trim()?'':' style="display:none"')+'>'+SVG_COPY+'</button>' +
+          '<button class="btn-clr" id="b-clr-exist" title="'+t('btnClearTitle')+'"'+(S.existing.trim()?'':' style="display:none"')+'>'+SVG_CLR+'</button>' +
         '</div>' +
       '</div>' +
       '<textarea id="inp-exist" rows="4" style="min-height:80px" maxlength="1500" placeholder="e.g: beautiful girl, best quality, masterpiece...&#10;&#10;or: дівчина-кіборг у нічному місті">'+esc(S.existing)+'</textarea>' +
@@ -3577,43 +3696,63 @@ function buildRightCol(mob, keyOk) {
 
   if (S.result) {
     var r = S.result;
+    var negTokCount = r.negative ? r.negative.split(/[,\s]+/).filter(Boolean).length : 0;
+    var posTokCount = r.positive ? r.positive.trim().split(/\s+/).filter(Boolean).length : 0;
+
     h += '<div class="output-main is-active">';
     if (r.via !== 'xml') h += '<div class="warn-strip">⚠ Parsed via '+esc(r.via)+' — open Debug for details</div>';
 
-    h += '<div class="sec-block" style="margin-bottom:var(--s3)">' +
-      '<div class="out-hdr"><span class="lbl">'+t('outPositive')+'</span>' +
-      '<div style="display:flex;align-items:center;gap:8px">' +
-      '<span style="font-size:10px;color:var(--t3);opacity:.8">~' + r.positive.trim().split(/\s+/).filter(Boolean).length + ' tokens</span>' +
-      '<button class="btn-copy" id="b-cp-pos">'+t('btnCopySubject')+'</button>' +
-      '</div></div>' +
-      '<div class="out-txt accent" id="out-pos">'+esc(r.positive)+'</div></div>';
-
-    h += '<div class="sec-block" style="margin-bottom:var(--s3)">' +
-      '<div class="out-hdr"><span class="lbl">'+t('outNegative')+'</span><button class="btn-copy" id="b-cp-neg">'+t('btnCopySubject')+'</button></div>' +
-      '<div class="out-txt" id="out-neg">'+esc(r.negative)+'</div></div>';
-
-    h += '<div class="output-actions">' +
-      '<button class="btn-ghost btn-regen" id="b-regen"><span class="act-icon">↺</span> '+t('btnRegenerate')+'</button>' +
-      '<button class="btn-ghost btn-icon-sq" id="b-cp-all" title="'+t('btnCopy')+'" style="color:var(--acc-txt);border-color:rgba(47,129,247,.3)">⧉</button>' +
-      (tg ? '<button class="btn-ghost btn-icon-sq" id="b-share" title="Share prompt" style="color:var(--acc-txt);border-color:rgba(47,129,247,.3)">⤴</button>' : '') +
-      '<button class="btn-ghost btn-icon-sq" id="b-hist" title="'+t('histBtnTitle')+'">📜</button>' +
+    /* PRIMARY */
+    h += '<div class="result-hero">' +
+      '<div class="result-hero-hdr">' +
+        '<span class="result-status">✓ '+(S.lang==='ua'?'Готово':'Ready')+'</span>' +
+        '<span class="result-meta">~'+posTokCount+' tokens</span>' +
+      '</div>' +
+      '<div class="out-txt accent" id="out-pos">'+esc(r.positive)+'</div>' +
+      '<div class="result-primary-actions">' +
+        '<button class="btn-primary btn-copy-primary" id="b-cp-pos">'+SVG_COPY+' '+t('btnCopy')+'</button>' +
+        '<button class="btn-regen-compact btn-ghost" id="b-regen" title="'+t('btnRegenerate')+'">↺</button>' +
+      '</div>' +
     '</div>';
 
-    h += '<button class="btn-ghost" id="b-improve-this" style="' +
-      'width:100%;margin-bottom:var(--s3);' +
-      'color:var(--acc-txt);border-color:rgba(47,129,247,.3);' +
-      'font-size:12px;padding:7px 12px' +
-    '">' + t('btnImproveThis') + '</button>';
+    /* SECONDARY: collapsible negative */
+    h += '<details class="result-details"'+(S.outNegOpen?' open':'')+' data-detail="neg">' +
+      '<summary class="result-details-sum">' +
+        '<span>'+t('outNegative')+' <span class="result-details-count">· '+negTokCount+' tokens</span></span>' +
+        '<button class="btn-copy-inline" id="b-cp-neg" title="'+t('btnCopySubject')+'">'+SVG_COPY+'</button>' +
+      '</summary>' +
+      '<div class="out-txt result-details-body" id="out-neg">'+esc(r.negative)+'</div>' +
+    '</details>';
 
+    /* SECONDARY: collapsible comfyui params */
     var pp = r.params;
     var pcards = [['Steps',pp.steps],['CFG',pp.cfg],['Sampler',pp.sampler],['Scheduler',pp.scheduler],['Resolution',pp.resolution],['Seed',pp.seed]];
-    h += '<div class="f-hdr" style="margin-bottom:8px"><span class="lbl">'+t('outParams')+'</span></div>' +
-      '<div class="params-grid">'+pcards.map(function(x){return '<div class="p-card"><span class="p-key">'+x[0]+'</span><span class="p-val">'+esc(x[1])+'</span></div>';}).join('')+'</div>';
+    h += '<details class="result-details"'+(S.outParamsOpen?' open':'')+' data-detail="params">' +
+      '<summary class="result-details-sum">' +
+        '<span>ComfyUI config <span class="result-details-count">· '+pp.sampler+' · '+pp.steps+' steps</span></span>' +
+      '</summary>' +
+      '<div class="result-details-body">' +
+        '<div class="params-grid">'+pcards.map(function(x){return '<div class="p-card"><span class="p-key">'+x[0]+'</span><span class="p-val">'+esc(x[1])+'</span></div>';}).join('')+'</div>' +
+      '</div>' +
+    '</details>';
+
+    /* TERTIARY: secondary actions */
+    h += '<div class="result-secondary-actions">' +
+      '<button class="btn-ghost btn-icon-sq" id="b-cp-all" title="'+(S.lang==='ua'?'Копіювати все':'Copy all')+'" style="color:var(--acc-txt);border-color:rgba(47,129,247,.3)">'+SVG_COPY+'<span style="font-size:9px;margin-left:2px;opacity:.7">all</span></button>' +
+      (tg ? '<button class="btn-ghost btn-icon-sq" id="b-share" title="Share prompt" style="color:var(--acc-txt);border-color:rgba(47,129,247,.3)">⤴</button>' : '') +
+      '<button class="btn-ghost btn-icon-sq" id="b-hist" title="'+t('histBtnTitle')+'">'+SVG_HIST+'</button>' +
+    '</div>';
 
     if (r.changes) h += '<div class="info-card"><span class="lbl">'+t('outChanged')+'</span><p>'+esc(r.changes)+'</p></div>';
     if (r.notes)   h += '<div class="info-card"><span class="lbl">'+t('outTip')+'</span><p>'+esc(r.notes)+'</p></div>';
 
-    h += '</div>'; /* output-main */
+    /* FOOTER: refine */
+    h += '<div class="result-footer">' +
+      '<div class="result-footer-hint">'+(S.lang==='ua'?'Хочеш інший ракурс або правки?':'Want a different angle or tweaks?')+'</div>' +
+      '<button class="btn-ghost result-refine-btn" id="b-improve-this">'+t('btnImproveThis')+' →</button>' +
+    '</div>';
+
+    h += '</div>';
   }
 
   h += '</div>'; /* col-r */
@@ -3878,6 +4017,11 @@ function attachEvents() {
     el.addEventListener('click', function(){ el.classList.toggle('expanded'); });
   });
   on('b-preset', 'click', function(){ exportPreset(); });
+  on('b-add-st', 'click', function(){
+    if (!S.accordOpen) S.accordOpen = {};
+    S.accordOpen.subjectType = true;
+    render();
+  });
   on('b-lang', 'click', function(){
     S.lang = S.lang === 'en' ? 'ua' : 'en';
     try { localStorage.setItem('zit_lang', S.lang); } catch(e) {}
@@ -4001,10 +4145,10 @@ function attachEvents() {
         saveSubjectDebounced();
         patch('preview');
         autoResize(ta);
-        var cnt = document.getElementById('sub-count');
+        var cnt = document.querySelector('.sub-count-inner');
         if (cnt) {
           cnt.textContent = ta.value.length || '';
-          cnt.style.color = ta.value.length > 300 ? 'var(--amber)' : 'var(--t3)';
+          cnt.className = 'sub-count-inner' + (ta.value.length > 300 ? ' warn' : '');
         }
         var hasText = !!ta.value.trim();
         var cpBtn = document.getElementById('b-cp-sub');
@@ -4079,6 +4223,12 @@ function attachEvents() {
       S.atmOpen = { lighting:false, mood:false, genre:false };
       S.atmOpen[key] = !wasOpen;
       render();
+      if (S.atmOpen[key]) {
+        requestAnimationFrame(function(){
+          var panel = document.querySelector('.atm-panel.open');
+          if (panel) panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+        });
+      }
     });
   });
   /* atm option selection */
@@ -4294,7 +4444,14 @@ function attachEvents() {
     }, 400);
   });
   on('b-cp-pos','click',function(e){ if(S.result) copyText(S.result.positive, e.currentTarget); });
-  on('b-cp-neg','click',function(e){ if(S.result) copyText(S.result.negative, e.currentTarget); });
+  /* details open/close state */
+  document.querySelectorAll('.result-details').forEach(function(d){
+    d.addEventListener('toggle', function(){
+      if (d.dataset.detail === 'neg') S.outNegOpen = d.open;
+      else if (d.dataset.detail === 'params') S.outParamsOpen = d.open;
+    });
+  });
+  on('b-cp-neg','click',function(e){ e.preventDefault(); e.stopPropagation(); if(S.result) copyText(S.result.negative, e.currentTarget); });
   on('b-share', 'click', sharePrompt);
   on('b-cp-all','click',function(e){
     if (!S.result) return;
