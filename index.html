@@ -76,7 +76,7 @@
       font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       font-size: 14px;
       line-height: 1.55;
-      min-height: 100vh;
+      min-height: 100dvh;
       width: 100%;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
@@ -122,6 +122,11 @@
     .pill.btn:hover { border-color: var(--bdr2); color: var(--t2); }
     .pill-lang { min-width: 72px; justify-content: center; }
     .pill.p-active { border-color: var(--amber-bdr); color: var(--amber-txt); background: var(--amber-bg); }
+    @keyframes pillDotPulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%     { opacity: .4; transform: scale(.7); }
+    }
+    .pill.p-active .dot { animation: pillDotPulse 1.2s ease-in-out infinite; }
     .pill.p-ok     { border-color: var(--green-bdr); color: var(--green-txt); background: var(--green-bg); }
     .pill.p-miss   { border-color: var(--red-bdr);   color: var(--red-txt);   background: var(--red-bg); }
     .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
@@ -171,7 +176,7 @@
     /* ═══════════════════════════════════════
        LAYOUT
     ═══════════════════════════════════════ */
-    .body-grid { display: grid; grid-template-columns: 1fr 1fr; min-height: calc(100vh - 53px); min-width: 0; }
+    .body-grid { display: grid; grid-template-columns: 1fr 1fr; min-height: calc(100dvh - 53px); min-width: 0; }
     .col { padding: var(--s5); min-width: 0; }
     .col-l { border-right: 1px solid var(--bdr); }
 
@@ -443,6 +448,10 @@
     }
 
     .gen-row { display: flex; gap: var(--s2); align-items: stretch; margin-top: var(--s1); }
+    /* В TG — нативна MainButton внизу, дублюючу .btn-primary ховаємо */
+    .in-telegram .gen-row .btn-primary { display: none; }
+    .in-telegram .gen-row .btn-random,
+    .in-telegram .gen-row .btn-adv { flex: 1; }
     .gen-row .btn-primary { flex: 1; margin-top: 0; }
 
     @keyframes genHighlight {
@@ -1847,8 +1856,8 @@ function getSubjectNeg(scene, subjectType) {
   });
 }
 
-function buildNegative() {
-  if (S.customNeg && S.customNeg.trim()) return S.customNeg.trim();
+function buildNegative(forceAuto) {
+  if (!forceAuto && S.customNeg && S.customNeg.trim()) return S.customNeg.trim();
   var base = SCENE_NEGATIVES_BASE[S.scene] || SCENE_NEGATIVES_BASE.manual;
   var subjectExtra = getSubjectNeg(S.scene, S.subjectType);
   var styleExtra = S.style === 'monochrome' ? ['color tint', 'color'] : [];
@@ -2026,11 +2035,55 @@ var PROXY_URL = 'https://zit-proxy.onrender.com';
    Share реалізований через Web Share API.
 ═══════════════════════════════════════════════════ */
 var tg = (window.Telegram && window.Telegram.WebApp) || null;
+var _proxyState = 'unknown'; // 'unknown' | 'warming' | 'ok' | 'down'
+
 if (tg) {
-  tg.ready();   /* сигналізує TG що app завантажений */
-  tg.expand();  /* розгортає на весь екран            */
-  /* warm-up ping — прокидає Render сервер поки юзер вводить дані */
-  if (PROXY_URL) fetch(PROXY_URL + '/health').catch(function(){});
+  tg.ready();
+  tg.expand();
+  if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
+  document.documentElement.classList.add('in-telegram');
+
+  /* MainButton — нативна кнопка внизу екрану TG */
+  if (tg.MainButton) {
+    tg.MainButton.color     = '#2F81F7';
+    tg.MainButton.textColor = '#ffffff';
+    tg.MainButton.setText('✦ Generate');
+    tg.MainButton.show();
+    tg.MainButton.onClick(function(){ generate(); });
+  }
+
+  /* Global haptic delegator — capture phase, один listener на весь app */
+  if (tg.HapticFeedback) {
+    document.addEventListener('click', function(e) {
+      var el = e.target;
+      if (el.closest('[data-scene],[data-style],[data-subtype],[data-atm-key],[data-preset],[data-mode],[data-hist],.model-card')) {
+        try { tg.HapticFeedback.selectionChanged(); } catch(_){}
+        return;
+      }
+      if (el.closest('.accord-hdr,.atm-card-hdr,.style-grp-hdr,#b-random,#b-adv,#b-hist,#b-vision-retry,#b-improve-this,#b-regen,#b-lang')) {
+        try { tg.HapticFeedback.impactOccurred('light'); } catch(_){}
+      }
+    }, true);
+  }
+}
+
+/* Warm-up proxy + track state — незалежно від TG */
+if (PROXY_URL) {
+  _proxyState = 'warming';
+  var _proxyTO = setTimeout(function(){
+    if (_proxyState === 'warming') { _proxyState = 'down'; patch('apiPill', true); }
+  }, 35000);
+  fetch(PROXY_URL + '/health')
+    .then(function(r){
+      clearTimeout(_proxyTO);
+      _proxyState = r.ok ? 'ok' : 'down';
+      patch('apiPill', true);
+    })
+    .catch(function(){
+      clearTimeout(_proxyTO);
+      _proxyState = 'down';
+      patch('apiPill', true);
+    });
 }
 
 /* ═══════════════════════════════════════════════════
@@ -2101,7 +2154,7 @@ var PERSIST_KEYS = [
   'scene','style','subjectType',
   'lighting','mood','genre','resolution',
   'sampler','scheduler','steps','cfg',
-  'model','customNeg','loras','seed','improvePreset','subject','accordOpen'
+  'model','customNeg','loras','seed','improvePreset','subject'
 ];
 
 function saveState() {
@@ -2571,7 +2624,9 @@ var VISION_SYSTEM = [
   'scene must reflect camera framing of subject, not background type.',
 ].join('\n');
 
-async function callVisionOnce(base64, mime) {
+var _visionAc = null;
+
+async function callVisionOnce(base64, mime, signal) {
   var body = {
     model: 'meta-llama/llama-4-scout-17b-16e-instruct',
     max_tokens: 512,
@@ -2587,15 +2642,30 @@ async function callVisionOnce(base64, mime) {
   var _vHeaders  = PROXY_URL
     ? { 'Content-Type': 'application/json' }
     : { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.apiKey };
-  var res = await fetch(_vEndpoint, {
-    method: 'POST',
-    headers: _vHeaders,
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) { var et = await res.text(); throw new Error('Vision API ' + res.status + ': ' + et.slice(0,120)); }
-  var data = await res.json();
-  var raw = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
-  return raw;
+
+  /* Combined AbortController: external signal + 45s timeout */
+  var _tac = new AbortController();
+  var _tid = setTimeout(function(){ _tac.abort(); }, 45000);
+  var _combined = new AbortController();
+  function _abortCombined(){ _combined.abort(); }
+  signal.addEventListener('abort', _abortCombined, { once: true });
+  _tac.signal.addEventListener('abort', _abortCombined, { once: true });
+
+  try {
+    var res = await fetch(_vEndpoint, {
+      method: 'POST', headers: _vHeaders,
+      body: JSON.stringify(body), signal: _combined.signal
+    });
+    clearTimeout(_tid);
+    if (!res.ok) { var et = await res.text(); throw new Error('Vision API ' + res.status + ': ' + et.slice(0,120)); }
+    var data = await res.json();
+    return (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+  } catch(e) {
+    clearTimeout(_tid);
+    if (_tac.signal.aborted) { var te = new Error(t('errTimeout')); te.code = 'timeout'; throw te; }
+    if (e.name === 'AbortError') { var ae = new Error('__aborted__'); ae.aborted = true; throw ae; }
+    throw e;
+  }
 }
 
 /* ─── VISION CONSTANTS ─────────────────────────────
@@ -2644,6 +2714,11 @@ async function analyzeImage(file) {
   if (!ALLOWED.includes(file.type)) { S.error=t('visionErrType'); renderImmediate(); return; }
   if (file.size > MAX_VISION_MB * 1024 * 1024) { S.error=t('visionErrSize').replace('{maxMB}', MAX_VISION_MB); renderImmediate(); return; }
 
+  /* Ownership pattern — same as generate() */
+  if (_visionAc) _visionAc.abort();
+  var myAc = new AbortController();
+  _visionAc = myAc;
+
   S.visionLoading=true; S.visionSuccess=false; S.error='';
   renderImmediate();
 
@@ -2654,67 +2729,118 @@ async function analyzeImage(file) {
       reader.onerror = function()  { reject(new Error(t('visionErrParse'))); };
       reader.readAsDataURL(file);
     });
-    var raw = await callVisionOnce(base64, file.type);
+
+    if (_visionAc !== myAc) return;
+
+    var raw = await callVisionOnce(base64, file.type, myAc.signal);
+
+    if (_visionAc !== myAc) return;
+
     applyVisionResult(raw);
     S.visionSuccess = true;
     S.error = '';
     saveState();
   } catch(e) {
+    if (_visionAc !== myAc) return;
+    if (e.aborted || myAc.signal.aborted) return;
     S.error = e.message || t('visionErrParse');
     S.visionSuccess = false;
   }
-  S.visionLoading = false;
-  renderImmediate(); forceRepaint();
+
+  if (_visionAc === myAc) {
+    _visionAc = null;
+    S.visionLoading = false;
+    renderImmediate(); forceRepaint();
+  }
 }
 
 async function generate() {
+  // Pre-checks — повертаємось РАНО, _ac не торкаємось
   if (!PROXY_URL && !S.apiKey.trim()) { S.error=t('errNoKey'); S.apiOpen=true; renderImmediate(); forceRepaint(); return; }
   if (S.mode==='generate' && !S.subject.trim()) { S.error=t('errNoSubject'); renderImmediate(); forceRepaint(); return; }
   if (S.mode==='enhance'  && !S.existing.trim()) { S.error=t('errNoExisting'); renderImmediate(); forceRepaint(); return; }
-  if (_busy) { if (_ac) _ac.abort(); _busy=false; }
-  _ac=new AbortController(); _busy=true;
+
+  // Abort попередній запит якщо є. Він спіймає AbortError,
+  // перевірить ownership (_ac !== myAc) і вийде мовчки.
+  if (_ac) _ac.abort();
+
+  // Локальний controller — ніколи не перезаписується ззовні. Це "квиток власника".
+  var myAc = new AbortController();
+  _ac = myAc;
+  _busy = true;
+
   S.loading=true; S.error='';
   S.result=null; S.dbgLog=null;
   if (window.innerWidth<=680) S.mobilePane='output';
   renderImmediate();
+
   var attempts=0;
   while (attempts<=2) {
     attempts++;
+
+    // Pre-await ownership check — нас замінили? виходимо мовчки.
+    if (_ac !== myAc) return;
+
     try {
-      var out = await callGroqOnce(_ac.signal);
+      var out = await callGroqOnce(myAc.signal);
+
+      // Post-await — нас замінили під час очікування?
+      if (_ac !== myAc) return;
+
       S.dbgLog = out.log;
       var loraStr = S.loras.filter(function(l){return l.name.trim();}).map(function(l){return '<lora:'+l.name.trim()+':'+l.weight+'>';}).join(' ');
-      S.result = { positive: loraStr ? out.positive+' '+loraStr : out.positive, negative:out.negative, notes:out.notes, changes:out.changes, via:out.via, params:{steps:S.steps,cfg:S.cfg,sampler:S.sampler,scheduler:S.scheduler,resolution:S.resolution,seed:S.seed||String(Math.floor(Math.random()*1e9))} };
+      S.result = {
+        positive: loraStr ? out.positive+' '+loraStr : out.positive,
+        negative: out.negative, notes: out.notes, changes: out.changes, via: out.via,
+        params: { steps:S.steps, cfg:S.cfg, sampler:S.sampler, scheduler:S.scheduler,
+                  resolution:S.resolution, seed:S.seed||String(Math.floor(Math.random()*1e9)) }
+      };
       saveToHistory(S.result);
       break;
+
     } catch(e) {
-      S.dbgLog=e.log||null;
-      if (e.aborted) break;
+      // Post-await ownership check — критично.
+      if (_ac !== myAc) return;
+
+      S.dbgLog = e.log||null;
+
+      // Наш сигнал aborted — виходимо мовчки.
+      if (e.aborted || myAc.signal.aborted) return;
+
       if (e.code===429 && attempts<=2) {
-        if (_ac&&_ac.signal.aborted) break;
         var delay=3000*attempts;
         S.error = t('errRateLimit').replace('{n}', attempts).replace('{s}', delay/1000);
         renderImmediate();
         await sleep(delay);
-        if (_ac&&_ac.signal.aborted) break;
+        if (_ac !== myAc) return;
         S.error=''; continue;
       }
       if ((e.code===500||e.code===503||e.code===502) && attempts<=1) {
-        if (_ac&&_ac.signal.aborted) break;
         S.error = t('errServer').replace('{code}', e.code).replace('{n}', attempts);
         renderImmediate();
         await sleep(2000);
-        if (_ac&&_ac.signal.aborted) break;
+        if (_ac !== myAc) return;
         S.error=''; continue;
       }
-      if (e.code===401) { S.error=e.message; S.apiOpen=true; }
+      if (e.code===401)            { S.error=e.message; S.apiOpen=true; }
       else if (e.code==='timeout') { S.error=t('errTimeout'); }
       else if (e.code==='offline') { S.error=t('errOffline'); }
-      else S.error=e.message;
+      else                         { S.error=e.message; }
       break;
     }
   }
-  _busy=false; S.loading=false; renderImmediate(); forceRepaint();
+
+  // Final commit — лише якщо ми ВСЕ ЩЕ власник.
+  if (_ac === myAc) {
+    _ac=null; _busy=false; S.loading=false;
+    if (tg && tg.HapticFeedback) {
+      try {
+        if (S.result)     tg.HapticFeedback.notificationOccurred('success');
+        else if (S.error) tg.HapticFeedback.notificationOccurred('error');
+      } catch(_){}
+    }
+    renderImmediate(); forceRepaint();
+  }
 }
 
 /* ═══════════════════════════════════════════════════
@@ -2869,13 +2995,17 @@ function autoResize(el) {
   el.style.height = el.scrollHeight + 'px';
 }
 
+var _renderQueued = false;
 function render() {
   var active = document.activeElement;
   var activeTag = active ? active.tagName : '';
   if (activeTag === 'TEXTAREA' || activeTag === 'INPUT') {
-    /* defer render until blur — prevents Android keyboard dismiss */
+    /* defer render until blur — prevents Android keyboard dismiss.
+       _renderQueued guard ensures only ONE listener queued at a time */
+    if (_renderQueued) return;
+    _renderQueued = true;
     active.addEventListener('blur', function onBlur() {
-      active.removeEventListener('blur', onBlur);
+      _renderQueued = false;
       document.getElementById('app').innerHTML = buildHTML();
       attachEvents();
     }, { once: true });
@@ -2883,6 +3013,7 @@ function render() {
   }
   document.getElementById('app').innerHTML = buildHTML();
   attachEvents();
+  syncMainButton();
 }
 
 /* renderImmediate — bypasses defer, used in generate() flow
@@ -2890,6 +3021,7 @@ function render() {
 function renderImmediate() {
   document.getElementById('app').innerHTML = buildHTML();
   attachEvents();
+  syncMainButton();
 }
 
 /* ═══════════════════════════════════════════════════
@@ -2899,6 +3031,25 @@ function canGenerate() {
   if (S.mode === 'generate') return !!S.subject.trim();
   if (S.mode === 'enhance')  return !!S.existing.trim();
   return false;
+}
+
+function syncMainButton() {
+  if (!tg || !tg.MainButton) return;
+  try {
+    /* Ховаємо коли відкрита панель — кнопка під шторкою збиває */
+    if (S.advOpen || S.histOpen || S.apiOpen) {
+      tg.MainButton.hide(); return;
+    }
+    tg.MainButton.show();
+    var label = S.loading
+      ? (S.lang === 'ua' ? '⏳ Генерую…' : '⏳ Generating…')
+      : (S.mode === 'enhance' ? t('btnOptimize') : '✦ Generate');
+    tg.MainButton.setText(label);
+    if (S.loading) tg.MainButton.showProgress(false);
+    else           tg.MainButton.hideProgress();
+    if (canGenerate() && !S.loading) tg.MainButton.enable();
+    else                             tg.MainButton.disable();
+  } catch(_){}
 }
 
 function buildNegPreviewHTML() {
@@ -2919,6 +3070,7 @@ var PATCH_TARGETS = {
   neg:     '.neg-preview',
   genBtn:  '#b-gen',
   advBtn:  '#b-adv',
+  apiPill: '#b-api',
 };
 
 /* debounce таймери всередині patch — єдиний канал оновлення */
@@ -2947,6 +3099,21 @@ function patch(target, immediate) {
       case 'advBtn':
         el.className = buildAdvBtnClass();
         break;
+      case 'apiPill':
+        var keyOk = PROXY_URL ? true : !!S.apiKey.trim();
+        var pillCls, pillTxt, pillTitle = '';
+        if (PROXY_URL && _proxyState === 'warming') {
+          pillCls = 'p-active'; pillTxt = 'Warming up…'; pillTitle = 'Proxy waking up (~30s)';
+        } else if (PROXY_URL && _proxyState === 'down') {
+          pillCls = 'p-miss'; pillTxt = 'Proxy down'; pillTitle = 'Proxy unreachable';
+        } else {
+          pillCls = keyOk ? 'p-ok' : 'p-miss';
+          pillTxt = keyOk ? 'Groq ✓' : 'API Key?';
+        }
+        el.className = 'pill btn ' + pillCls;
+        el.title = pillTitle;
+        el.innerHTML = '<span class="dot"></span>' + pillTxt;
+        break;
     }
   }, delay);
 }
@@ -2957,6 +3124,18 @@ function patch(target, immediate) {
 
 function buildHeader(mob, keyOk) {
   var langLabel = S.lang === 'ua' ? '🌐 EN' : '🌐 UA';
+  /* Proxy state має пріоритет над key state */
+  var pillCls, pillTxt, pillTitle = '';
+  if (PROXY_URL && _proxyState === 'warming') {
+    pillCls = 'p-active'; pillTxt = 'Warming up…';
+    pillTitle = 'Proxy waking up (~30s)';
+  } else if (PROXY_URL && _proxyState === 'down') {
+    pillCls = 'p-miss'; pillTxt = 'Proxy down';
+    pillTitle = 'Proxy unreachable';
+  } else {
+    pillCls = keyOk ? 'p-ok' : 'p-miss';
+    pillTxt = keyOk ? 'Groq ✓' : 'API Key?';
+  }
   return '<div class="hdr">' +
     '<div class="hdr-brand">' +
       '<div class="app-title">' +
@@ -2965,7 +3144,7 @@ function buildHeader(mob, keyOk) {
       '</div>' +
     '</div>' +
     '<div class="hdr-acts">' +
-      '<div class="pill btn ' + (keyOk?'p-ok':'p-miss') + '" id="b-api"><span class="dot"></span>' + (keyOk?'Groq ✓':'API Key?') + '</div>' +
+      '<div class="pill btn ' + pillCls + '" id="b-api" title="' + esc(pillTitle) + '"><span class="dot"></span>' + pillTxt + '</div>' +
       '<div class="pill btn pill-lang" id="b-lang" title="Switch UI language">' + langLabel + '</div>' +
     '</div>' +
   '</div>';
@@ -3308,7 +3487,7 @@ function buildLeftCol(mob) {
           ? '<span style="display:inline-flex;align-items:center;gap:8px;justify-content:center"><span style="display:inline-block;animation:spin .65s linear infinite;opacity:.7">⟳</span> '+t('btnGenerating')+'</span>'
           : t('btnGenerate')) +
       '</button>' +
-      '<button class="btn-random" id="b-random" title="Random subject — Shift: creative — DblClick: wild" style="min-width:48px">🔀</button>' +
+      '<button class="btn-random" id="b-random" title="Random subject — Shift/Long-press: wild mode" style="min-width:48px">🔀</button>' +
       '<button class="btn-adv'+(advChanged?' is-changed':'')+'" id="b-adv" title="'+t('advTooltip')+'">⚙'+(advChanged?'<span class="adv-dot"></span>':'')+'</button>' +
     '</div>' +
 
@@ -3470,7 +3649,7 @@ function buildAdvPanel() {
           (S.customNeg?'<button class="btn-text" id="b-adv-neg-clr" style="font-size:11px;color:var(--red-txt)">✕ Reset to auto</button>':'') +
         '</div>' +
         '<textarea id="inp-custom-neg" rows="3" style="font-size:12px;font-family:\'JetBrains Mono\',monospace;min-height:72px" placeholder="'+t('advNegPlaceholder')+'">'+esc(S.customNeg)+'</textarea>' +
-        '<p style="font-size:10px;color:var(--t4);margin-top:4px">Auto: <em style="color:var(--t3)">'+esc((function(){ var tmp=S.customNeg; S.customNeg=''; var r=buildNegative(); S.customNeg=tmp; return r; })())+'</em></p>' +
+        '<p style="font-size:10px;color:var(--t4);margin-top:4px">Auto: <em style="color:var(--t3)">'+esc(buildNegative(true))+'</em></p>' +
       '</div>' +
     '</div>' +
     '<div class="adv-actions">' +
@@ -3558,12 +3737,20 @@ function attachEvents() {
   on('b-open-dbg',  'click', function(){ S.dbgOpen=true; render(); });
 
   /* ── ADVANCED PANEL ── */
-  on('b-adv', 'click', function(){ S.advOpen=true; render(); });
+  on('b-adv', 'click', function(){
+    S.advOpen=true;
+    if (tg && tg.BackButton) { tg.BackButton.show(); tg.BackButton.onClick(function(){ S.advOpen=false; if(tg.BackButton) tg.BackButton.hide(); render(); }); }
+    render();
+  });
 
   /* ── HISTORY PANEL ── */
-  on('b-hist',       'click', function(){ S.histOpen=true; render(); });
-  on('b-hist-close', 'click', function(){ S.histOpen=false; render(); });
-  on('b-hist-clr',   'click', function(){ clearHistory(); S.histOpen=false; render(); });
+  on('b-hist',       'click', function(){
+    S.histOpen=true;
+    if (tg && tg.BackButton) { tg.BackButton.show(); tg.BackButton.onClick(function(){ S.histOpen=false; if(tg.BackButton) tg.BackButton.hide(); render(); }); }
+    render();
+  });
+  on('b-hist-close', 'click', function(){ S.histOpen=false; if(tg&&tg.BackButton) tg.BackButton.hide(); render(); });
+  on('b-hist-clr',   'click', function(){ clearHistory(); S.histOpen=false; if(tg&&tg.BackButton) tg.BackButton.hide(); render(); });
 
   (function(){
     var ov = document.getElementById('hist-overlay');
@@ -3634,8 +3821,8 @@ function attachEvents() {
       render();
     });
   });
-  on('b-adv-close', 'click', function(){ S.advOpen=false; render(); });
-  on('b-adv-apply', 'click', function(){ S.advOpen=false; render(); });
+  on('b-adv-close', 'click', function(){ S.advOpen=false; if(tg&&tg.BackButton) tg.BackButton.hide(); render(); });
+  on('b-adv-apply', 'click', function(){ S.advOpen=false; if(tg&&tg.BackButton) tg.BackButton.hide(); render(); });
   on('b-adv-reset', 'click', function(){ resetAdv(); render(); });
   on('b-adv-neg-clr', 'click', function(){ S.customNeg=''; render(); });
 
@@ -3748,16 +3935,12 @@ function attachEvents() {
     });
   });
 
-  function live(id, key){ var el=document.getElementById(id); if(el) el.addEventListener('input',function(){
-    S[key]=el.value;
-  }); }
   var _subSaveTimer = null;
   function saveSubjectDebounced() {
     clearTimeout(_subSaveTimer);
     _subSaveTimer = setTimeout(function(){ saveState(); }, 800);
   }
 
-  function liveAndSave(id, key){ var el=document.getElementById(id); if(el) el.addEventListener('input',function(){ S[key]=el.value; saveState(); }); }
   function liveAndSave(id, key){ var el=document.getElementById(id); if(el) el.addEventListener('input',function(){ S[key]=el.value; saveState(); }); }
   liveAndSave('inp-steps','steps'); liveAndSave('inp-cfg','cfg'); liveAndSave('inp-seed','seed');
 
@@ -4024,6 +4207,7 @@ function attachEvents() {
       }
     });
 
+    /* Desktop: dblclick → wild mode */
     rndBtn.addEventListener('dblclick', function(e) {
       e.stopPropagation();
       S.rndMode = 'wild';
@@ -4036,6 +4220,26 @@ function attachEvents() {
       if (badge) { badge.textContent='DblClick: max wild ⚡'; badge.className='rnd-badge wild'; }
       setTimeout(function(){ S.rndMode='normal'; var b=document.getElementById('rnd-badge'); if(b){b.textContent='';b.className='rnd-badge';} }, 3000);
     });
+
+    /* Mobile: long-press (600ms) → wild mode */
+    var _rndPressTimer = null;
+    rndBtn.addEventListener('touchstart', function(e) {
+      _rndPressTimer = setTimeout(function() {
+        _rndPressTimer = null;
+        S.rndMode = 'wild';
+        rndBtn.classList.remove('fired');
+        void rndBtn.offsetWidth;
+        rndBtn.classList.add('fired');
+        setTimeout(function(){ rndBtn.classList.remove('fired'); }, 250);
+        doRandom('wild');
+        var badge = document.getElementById('rnd-badge');
+        if (badge) { badge.textContent='Long press: max wild ⚡'; badge.className='rnd-badge wild'; }
+        setTimeout(function(){ S.rndMode='normal'; var b=document.getElementById('rnd-badge'); if(b){b.textContent='';b.className='rnd-badge';} }, 3000);
+      }, 600);
+    }, { passive: true });
+    rndBtn.addEventListener('touchend',   function() { clearTimeout(_rndPressTimer); _rndPressTimer = null; }, { passive: true });
+    rndBtn.addEventListener('touchmove',  function() { clearTimeout(_rndPressTimer); _rndPressTimer = null; }, { passive: true });
+    rndBtn.addEventListener('touchcancel',function() { clearTimeout(_rndPressTimer); _rndPressTimer = null; }, { passive: true });
   }
 
   on('b-cp-sub','click',function(e){ if(S.subject.trim()) copyText(S.subject, e.currentTarget); });
