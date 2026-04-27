@@ -473,31 +473,31 @@
        SCENE + STYLE — SEL-BTN SYSTEM v2.2.3
     ═══════════════════════════════════════ */
 
-    /* Base selection button */
+    /* Base selection button — pill style */
     .sel-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      height: 34px;
-      padding: 0 12px;
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.25));
+      height: 36px;
+      padding: 0 14px;
+      background: rgba(255,255,255,.03);
       border: 1px solid var(--bdr);
-      border-radius: var(--r-sm);
+      border-radius: 20px;
       font-size: 12px; font-weight: 500; color: var(--t3);
       cursor: pointer; white-space: nowrap; user-select: none;
-      transition: border-color var(--tr), color var(--tr),
-                  background var(--tr), box-shadow var(--tr);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 1px 2px rgba(0,0,0,.2);
+      transition: border-color var(--tr), color var(--tr), background var(--tr);
     }
-    .sel-btn:hover {
-      border-color: var(--bdr2); color: var(--t2);
-      background: rgba(255,255,255,.05);
+    @media (hover: hover) {
+      .sel-btn:hover {
+        border-color: var(--bdr2); color: var(--t2);
+        background: rgba(255,255,255,.06);
+      }
     }
     .sel-btn:active { transform: scale(0.97); }
     .sel-btn.active {
       background: var(--cyan-dim);
       border-color: var(--cyan); color: #fff; font-weight: 600;
-      box-shadow: 0 0 0 1px rgba(56,189,248,.18), 0 2px 6px rgba(56,189,248,.1);
+      box-shadow: 0 0 0 1px rgba(56,189,248,.15);
     }
 
     /* Group container */
@@ -550,7 +550,10 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: 13px 14px; cursor: pointer; user-select: none; gap: 8px;
     }
-    .accord-hdr:hover { background: rgba(255,255,255,.03); }
+    @media (hover: hover) {
+      .accord-hdr:hover { background: rgba(255,255,255,.03); }
+    }
+    .accord-hdr:active { background: rgba(255,255,255,.03); }
     .accord-hdr-left { display: flex; align-items: center; gap: 9px; min-width: 0; flex: 1; }
     .accord-icon { color: var(--t3); flex-shrink: 0; display: flex; align-items: center; }
     .accord-title {
@@ -570,49 +573,46 @@
       display: flex; align-items: center;
     }
     .accord-section.open .accord-chevron { transform: rotate(180deg); }
-    .accord-body { display: none; padding: 0 14px 14px; }
+    .accord-body { display: none; padding: 10px 14px 14px; border-top: 1px solid var(--bdr); }
     .accord-section.open .accord-body { display: block; }
 
     /* ═══════════════════════════════════════
        ATMOSPHERE CARDS
     ═══════════════════════════════════════ */
-    .atm-cards {
+    .atm-cards-row {
       display: grid; grid-template-columns: 1fr 1fr 1fr;
-      gap: 6px; margin-top: var(--s3);
-      align-items: start;
+      gap: 6px; margin-top: var(--s3); align-items: stretch;
     }
     .atm-card {
       background: var(--bg2); border: 1px solid var(--bdr);
-      border-radius: var(--r-md); overflow: hidden;
-      cursor: pointer;
+      border-radius: var(--r-md); cursor: pointer;
       transition: border-color var(--tr);
     }
-    .atm-card:hover { border-color: var(--bdr2); }
-    .atm-card.open { border-color: var(--bdr2); }
-    .atm-card-hdr {
-      padding: 9px 10px 7px 9px;
-      display: flex; flex-direction: column; gap: 3px;
-    }
-    .atm-card-top { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
-    .atm-card-top-left { display: flex; align-items: center; gap: 5px; }
+    @media (hover: hover) { .atm-card:hover { border-color: var(--bdr2); } }
+    .atm-card.open { border-color: var(--cyan); }
+    .atm-card-hdr { padding: 10px 10px 8px; }
+    .atm-card-top { display: flex; align-items: center; justify-content: space-between; gap: 3px; margin-bottom: 4px; }
+    .atm-card-top-left { display: flex; align-items: center; gap: 4px; }
     .atm-card-icon { color: var(--t3); display: flex; align-items: center; flex-shrink: 0; }
-    .atm-card-lbl { font-size: 10px; color: var(--t3); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
-    .atm-card-chev { color: var(--t3); transition: transform .2s; display: flex; align-items: center; }
+    .atm-card-lbl { font-size: 9px; color: var(--t3); font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+    .atm-card-chev { color: var(--t3); transition: transform .2s; display: flex; align-items: center; flex-shrink: 0; }
     .atm-card.open .atm-card-chev { transform: rotate(180deg); }
-    .atm-card-val { font-size: 12px; color: var(--t1); font-weight: 600; padding-left: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .atm-opts {
-      display: none; flex-wrap: wrap; gap: 4px;
-      padding: 7px 9px 9px; border-top: 1px solid var(--bdr);
+    .atm-card-val { font-size: 12px; color: var(--t1); font-weight: 600; line-height: 1.3; word-break: break-word; min-height: 16px; }
+    /* Full-width options panel below the 3 cards */
+    .atm-panel {
+      display: none; margin-top: 6px;
+      background: var(--bg2); border: 1px solid var(--bdr2);
+      border-radius: var(--r-md); padding: 10px 12px 12px;
     }
-    .atm-card.open .atm-opts { display: flex; }
+    .atm-panel.open { display: block; }
+    .atm-panel-opts { display: flex; flex-wrap: wrap; gap: 5px; }
     .atm-opt {
-      font-size: 10px; padding: 3px 7px; border-radius: 20px;
+      font-size: 12px; padding: 5px 13px; border-radius: 20px;
       border: 1px solid var(--bdr); color: var(--t3);
-      background: transparent; cursor: pointer; font-family: inherit;
-      white-space: nowrap;
+      background: transparent; cursor: pointer; font-family: inherit; white-space: nowrap;
       transition: border-color var(--tr), color var(--tr), background var(--tr);
     }
-    .atm-opt:hover { border-color: var(--bdr2); color: var(--t2); background: rgba(255,255,255,.04); }
+    @media (hover: hover) { .atm-opt:hover { border-color: var(--bdr2); color: var(--t2); background: rgba(255,255,255,.04); } }
     .atm-opt.active { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan-txt); font-weight: 600; }
 
     /* Keep pill-row + st-pill for Subject Type pills */
@@ -3106,18 +3106,12 @@ function buildLeftCol(mob) {
     }
 
     /* ATM cards (lighting / mood / genre) */
-    function buildAtmCard(key, labelKey, icon, items, current, noneAllowed) {
+    function buildAtmCard(key, labelKey, icon, current) {
       var open = S.atmOpen && S.atmOpen[key];
-      var noneLabel = t('noneOpt') || '—';
+      var items = key==='lighting' ? LIGHTINGS : key==='mood' ? MOODS : GENRES;
       var curItem = items.find(function(x){ return x.label===current; });
-      var curDisplay = curItem ? (S.lang==='ua'&&curItem.labelUa?curItem.labelUa:curItem.label) : (noneAllowed?noneLabel:'');
-      var opts = (noneAllowed
-        ? '<button class="atm-opt'+(current===''?' active':'')+'" data-atm-key="'+key+'" data-atm-val="">'+noneLabel+'</button>'
-        : '') +
-        items.map(function(it){
-          var lbl = S.lang==='ua'&&it.labelUa ? it.labelUa : it.label;
-          return '<button class="atm-opt'+(current===it.label?' active':'')+'" data-atm-key="'+key+'" data-atm-val="'+esc(it.label)+'">'+esc(lbl)+'</button>';
-        }).join('');
+      var noneLabel = t('noneOpt') || '—';
+      var curDisplay = curItem ? (S.lang==='ua'&&curItem.labelUa?curItem.labelUa:curItem.label) : noneLabel;
       return '<div class="atm-card'+(open?' open':'')+'" data-atm="'+key+'">' +
         '<div class="atm-card-hdr">' +
           '<div class="atm-card-top">' +
@@ -3126,7 +3120,21 @@ function buildLeftCol(mob) {
           '</div>' +
           '<div class="atm-card-val">'+esc(curDisplay)+'</div>' +
         '</div>' +
-        '<div class="atm-opts">'+opts+'</div>' +
+      '</div>';
+    }
+
+    function buildAtmPanel(key, items, current, noneAllowed) {
+      var open = S.atmOpen && S.atmOpen[key];
+      var noneLabel = t('noneOpt') || '—';
+      var opts = (noneAllowed
+        ? '<button class="atm-opt'+(current===''?' active':'')+'" data-atm-key="'+key+'" data-atm-val="">'+noneLabel+'</button>'
+        : '') +
+        items.map(function(it){
+          var lbl = S.lang==='ua'&&it.labelUa ? it.labelUa : it.label;
+          return '<button class="atm-opt'+(current===it.label?' active':'')+'" data-atm-key="'+key+'" data-atm-val="'+esc(it.label)+'">'+esc(lbl)+'</button>';
+        }).join('');
+      return '<div class="atm-panel'+(open?' open':'')+'">' +
+        '<div class="atm-panel-opts">'+opts+'</div>' +
       '</div>';
     }
 
@@ -3137,12 +3145,15 @@ function buildLeftCol(mob) {
       buildAccord('style',       'lStyle',       styleVal,  styleHtml) +
     '</div>';
 
-    /* ATMOSPHERE — 3 окремі картки */
-    h += '<div class="atm-cards">' +
-      buildAtmCard('lighting', 'lLighting', ATM_ICONS.lighting, LIGHTINGS, S.lighting, false) +
-      buildAtmCard('mood',     'lMood',     ATM_ICONS.mood,     MOODS,     S.mood,     true)  +
-      buildAtmCard('genre',    'lGenre',    ATM_ICONS.genre,    GENRES,    S.genre,    true)  +
-    '</div>';
+    /* ATMOSPHERE — 3 картки + одна панель нижче */
+    h += '<div class="atm-cards-row">' +
+      buildAtmCard('lighting', 'lLighting', ATM_ICONS.lighting, S.lighting) +
+      buildAtmCard('mood',     'lMood',     ATM_ICONS.mood,     S.mood)     +
+      buildAtmCard('genre',    'lGenre',    ATM_ICONS.genre,    S.genre)    +
+    '</div>' +
+    buildAtmPanel('lighting', LIGHTINGS, S.lighting, false) +
+    buildAtmPanel('mood',     MOODS,     S.mood,     true)  +
+    buildAtmPanel('genre',    GENRES,    S.genre,    true);
   }
 
   if (S.mode === 'enhance') {
