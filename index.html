@@ -531,6 +531,55 @@
     /* Button row */
     .sel-row { display: flex; flex-wrap: wrap; gap: 5px; }
 
+    /* ═══════════════════════════════════════
+       ACCORDION
+    ═══════════════════════════════════════ */
+    .config-block { margin-bottom: var(--s3); }
+    .config-title {
+      font-size: 10px; font-weight: 700; letter-spacing: .16em;
+      text-transform: uppercase; color: var(--t3);
+      margin-bottom: var(--s2); padding-bottom: 6px;
+      border-bottom: 1px solid var(--bdr);
+    }
+    .accord-section {
+      border: 1px solid var(--bdr); border-radius: var(--r-md);
+      margin-bottom: 5px; overflow: hidden; background: var(--bg2);
+    }
+    .accord-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; cursor: pointer; user-select: none; gap: 8px;
+    }
+    .accord-hdr:hover { background: rgba(255,255,255,.03); }
+    .accord-hdr-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .accord-title {
+      font-size: 12px; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--t2); white-space: nowrap;
+    }
+    .accord-val {
+      font-size: 11px; color: var(--cyan-txt); font-weight: 500;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      opacity: .85; max-width: 140px;
+    }
+    .accord-chevron { font-size: 10px; color: var(--t3); flex-shrink: 0; transition: transform .2s ease; }
+    .accord-section.open .accord-chevron { transform: rotate(180deg); }
+    .accord-body { display: none; padding: 0 12px 12px; }
+    .accord-section.open .accord-body { display: block; }
+
+    /* Atmosphere pills */
+    .atm-group { margin-bottom: 10px; }
+    .atm-group:last-child { margin-bottom: 0; }
+    .atm-lbl { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--t3); margin-bottom: 5px; }
+    .atm-row { display: flex; flex-wrap: wrap; gap: 5px; }
+    .atm-btn {
+      display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border-radius: 20px;
+      background: transparent; border: 1px solid var(--bdr); font-size: 11px; font-weight: 500;
+      color: var(--t3); cursor: pointer; white-space: nowrap; font-family: inherit;
+      transition: border-color var(--tr), color var(--tr), background var(--tr);
+    }
+    .atm-btn:hover { border-color: var(--bdr2); color: var(--t2); background: rgba(255,255,255,.04); }
+    .atm-btn.active { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan-txt); font-weight: 600; }
+    .atm-btn.atm-none.active { background: rgba(255,255,255,.04); border-color: var(--bdr2); color: var(--t2); }
+
     /* Keep pill-row + st-pill for Subject Type pills */
     .pill-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: var(--s2); }
     .st-pill {
@@ -1771,7 +1820,7 @@ const I18N = {
     lStyle: 'Visual Style', lStyleHint: 'see style details',
     lPrompt: 'PROMPT', lPromptHint: 'UA or EN',
     lLighting: 'Lighting', lMood: 'Mood',
-    lGenre: 'Genre', lResolution: 'Resolution',
+    lGenre: 'Genre', lAtmosphere: 'Atmosphere', lResolution: 'Resolution',
     lLoRA: 'LoRA Stack', lSampler: 'Sampler + Scheduler',
     lSteps: 'Steps', lCFG: 'CFG', lSeed: 'Seed',
     lExisting: 'Existing Prompt', lExistingHint: 'Any language',
@@ -1832,7 +1881,7 @@ const I18N = {
     lStyle: 'Візуальний стиль', lStyleHint: 'деталі стилю',
     lPrompt: 'ПРОМПТ', lPromptHint: 'UA або EN',
     lLighting: 'Освітлення', lMood: 'Настрій',
-    lGenre: 'Жанр', lResolution: 'Роздільна здатність',
+    lGenre: 'Жанр', lAtmosphere: 'Атмосфера', lResolution: 'Роздільна здатність',
     lLoRA: 'LoRA стек', lSampler: 'Семплер + Планувальник',
     lSteps: 'Кроки', lCFG: 'CFG', lSeed: 'Сід',
     lExisting: 'Вхідний промпт', lExistingHint: 'Будь-яка мова',
@@ -1937,6 +1986,7 @@ var S = {
   loading:false, visionLoading:false, visionSuccess:false, result:null, error:'', dbgLog:null,
   rndMode:'normal',
   subjectHistory:[],
+  accordOpen:{ scene:false, subjectType:false, style:false, atmosphere:false },
 };
 
 var ADV_DEFAULTS = { steps:'12', cfg:'1.5', sampler:'euler_ancestral', scheduler:'beta', seed:'', loras:[], resolution:'896x1152', customNeg:'' };
@@ -1984,7 +2034,7 @@ var PERSIST_KEYS = [
   'scene','style','subjectType',
   'lighting','mood','genre','resolution',
   'sampler','scheduler','steps','cfg',
-  'model','customNeg','loras','seed','improvePreset','subject'
+  'model','customNeg','loras','seed','improvePreset','subject','accordOpen'
 ];
 
 function saveState() {
@@ -2957,6 +3007,8 @@ function buildLeftCol(mob) {
     '</div>';
 
     /* SCENE */
+    var sceneActive = SCENES.find(function(x){return x.id===S.scene;});
+    var sceneVal = sceneActive ? esc(S.lang==='ua'&&sceneActive.labelUa ? sceneActive.labelUa : sceneActive.label) : '';
     var sceneHtml = getSceneGroups().map(function(grp) {
       var btns = grp.ids.map(function(id) {
         var sc = SCENES.find(function(x){ return x.id === id; });
@@ -2966,16 +3018,18 @@ function buildLeftCol(mob) {
       }).join('');
       return '<div class="sel-group"><span class="cat-label">'+esc(grp.label)+'</span><div class="sel-row">'+btns+'</div></div>';
     }).join('');
-    h += '<div class="sec-block"><div class="f-hdr"><label class="lbl">'+t('lScene')+'</label><span class="hint">'+t('lSceneHint')+'</span></div>'+sceneHtml+'</div>';
 
     /* SUBJECT TYPE */
+    var subjActive = SUBJECTS.find(function(x){return x.id===S.subjectType;});
+    var subjVal = subjActive && subjActive.id!=='none' ? esc(subjActive.label) : '';
     var subjPills = SUBJECTS.map(function(s){
       return '<div class="st-pill'+(S.subjectType===s.id?' active':'')+'" data-subtype="'+s.id+'"'+(s.tip?' title="'+esc(s.tip)+'"':'')+'>'+
         '<span class="st-icon">'+esc(s.icon)+'</span> '+esc(s.label)+'</div>';
     }).join('');
-    h += '<div class="sec-block"><div class="f-hdr"><label class="lbl">'+t('lSubjectType')+'</label><span class="hint">'+t('lSubjectHint')+'</span></div><div class="pill-row" style="margin-bottom:0">'+subjPills+'</div></div>';
 
     /* STYLE */
+    var styleActive = STYLES.find(function(x){return x.id===S.style;});
+    var styleVal = styleActive ? esc(styleActive.label) : '';
     var styleHtml = getStyleGroups().map(function(grp) {
       var btns = grp.ids.map(function(id) {
         var st = STYLES.find(function(x){ return x.id === id; });
@@ -2984,18 +3038,44 @@ function buildLeftCol(mob) {
       }).join('');
       return '<div class="sel-group"><span class="cat-label"><span class="cat-icon">'+grp.icon+'</span>'+esc(grp.label)+'</span><div class="sel-row">'+btns+'</div></div>';
     }).join('');
-    h += '<div class="sec-block"><div class="f-hdr"><label class="lbl">'+t('lStyle')+'</label><span class="hint">'+t('lStyleHint')+'</span></div>'+styleHtml+'</div>';
 
-    /* ATMOSPHERE */
-    h += '<div class="secondary-section"><div class="sec-block">' +
-      '<div class="three-col" style="grid-template-columns:1fr 1fr 1fr">' +
-        '<div class="field"><div class="f-hdr"><label class="lbl">'+t('lLighting')+'</label></div>' +
-        '<select id="sel-light">'+LIGHTINGS.map(function(l){return '<option value="'+esc(l.label)+'"'+(S.lighting===l.label?' selected':'')+'>'+(l.label?(S.lang==='ua'?esc(l.labelUa):esc(l.label)):t('noneOpt'))+'</option>';}).join('')+'</select></div>' +
-        '<div class="field"><div class="f-hdr"><label class="lbl">'+t('lMood')+'</label></div>' +
-        '<select id="sel-mood">'+MOODS.map(function(m){return '<option value="'+esc(m.label)+'"'+(S.mood===m.label?' selected':'')+'>'+(m.label?(S.lang==='ua'?esc(m.labelUa):esc(m.label)):t('noneOpt'))+'</option>';}).join('')+'</select></div>' +
-        '<div class="field"><div class="f-hdr"><label class="lbl">'+t('lGenre')+'</label></div>' +
-        '<select id="sel-genre">'+GENRES.map(function(g){return '<option value="'+esc(g.label)+'"'+(S.genre===g.label?' selected':'')+'>'+(g.label?(S.lang==='ua'?esc(g.labelUa):esc(g.label)):t('noneOpt'))+'</option>';}).join('')+'</select></div>' +
-      '</div></div></div>';
+    /* ATMOSPHERE pills */
+    var atmParts = [S.lighting, S.mood, S.genre].filter(Boolean);
+    var atmVal = atmParts.length ? esc(atmParts.join(' · ')) : '';
+    var noneLabel = t('noneOpt') || '—';
+    var lightHtml = '<div class="atm-group"><div class="atm-lbl">'+t('lLighting')+'</div><div class="atm-row">' +
+      LIGHTINGS.map(function(l){ return '<button class="atm-btn'+(S.lighting===l.label?' active':'')+'" data-lighting="'+esc(l.label)+'">'+(S.lang==='ua'&&l.labelUa?esc(l.labelUa):esc(l.label))+'</button>'; }).join('') +
+    '</div></div>';
+    var moodHtml = '<div class="atm-group"><div class="atm-lbl">'+t('lMood')+'</div><div class="atm-row">' +
+      '<button class="atm-btn atm-none'+(!S.mood?' active':'')+'" data-mood="">'+noneLabel+'</button>' +
+      MOODS.map(function(m){ return '<button class="atm-btn'+(S.mood===m.label?' active':'')+'" data-mood="'+esc(m.label)+'">'+(S.lang==='ua'&&m.labelUa?esc(m.labelUa):esc(m.label))+'</button>'; }).join('') +
+    '</div></div>';
+    var genreHtml = '<div class="atm-group"><div class="atm-lbl">'+t('lGenre')+'</div><div class="atm-row">' +
+      '<button class="atm-btn atm-none'+(!S.genre?' active':'')+'" data-genre="">'+noneLabel+'</button>' +
+      GENRES.map(function(g){ return '<button class="atm-btn'+(S.genre===g.label?' active':'')+'" data-genre="'+esc(g.label)+'">'+(S.lang==='ua'&&g.labelUa?esc(g.labelUa):esc(g.label))+'</button>'; }).join('') +
+    '</div></div>';
+
+    function buildAccord(id, titleKey, val, body) {
+      var open = S.accordOpen && S.accordOpen[id];
+      return '<div class="accord-section'+(open?' open':'')+'" data-accord="'+id+'">' +
+        '<div class="accord-hdr">' +
+          '<div class="accord-hdr-left">' +
+            '<span class="accord-title">'+t(titleKey)+'</span>' +
+            (val?'<span class="accord-val">'+val+'</span>':'') +
+          '</div>' +
+          '<span class="accord-chevron">▾</span>' +
+        '</div>' +
+        '<div class="accord-body">'+body+'</div>' +
+      '</div>';
+    }
+
+    h += '<div class="config-block">' +
+      '<div class="config-title">Configuration</div>' +
+      buildAccord('scene',       'lScene',       sceneVal,  sceneHtml) +
+      buildAccord('subjectType', 'lSubjectType', subjVal,   '<div class="pill-row" style="margin-bottom:0">'+subjPills+'</div>') +
+      buildAccord('style',       'lStyle',       styleVal,  styleHtml) +
+      buildAccord('atmosphere',  'lAtmosphere',  atmVal,    lightHtml+moodHtml+genreHtml) +
+    '</div>';
   }
 
   if (S.mode === 'enhance') {
@@ -3561,9 +3641,25 @@ function attachEvents() {
     });
   }
   function lsel(id,key){ var el=document.getElementById(id); if(el) el.addEventListener('change',function(){ S[key]=el.value; saveState(); render(); }); }
-  /* lighting/mood/genre → only preview needs update, no structural change */
-  function lselPatch(id,key){ var el=document.getElementById(id); if(el) el.addEventListener('change',function(){ S[key]=el.value; saveState(); patch('preview'); }); }
-  lselPatch('sel-light','lighting'); lselPatch('sel-mood','mood'); lselPatch('sel-genre','genre');
+  /* accordion toggles */
+  document.querySelectorAll('[data-accord]').forEach(function(el){
+    el.querySelector('.accord-hdr').addEventListener('click', function(){
+      var id = el.dataset.accord;
+      if (!S.accordOpen) S.accordOpen = {};
+      S.accordOpen[id] = !S.accordOpen[id];
+      saveState(); render();
+    });
+  });
+  /* atmosphere pills */
+  document.querySelectorAll('[data-lighting]').forEach(function(el){
+    el.addEventListener('click', function(){ S.lighting = el.dataset.lighting; saveState(); patch('preview'); });
+  });
+  document.querySelectorAll('[data-mood]').forEach(function(el){
+    el.addEventListener('click', function(){ S.mood = el.dataset.mood; saveState(); patch('preview'); });
+  });
+  document.querySelectorAll('[data-genre]').forEach(function(el){
+    el.addEventListener('click', function(){ S.genre = el.dataset.genre; saveState(); patch('preview'); });
+  });
   lsel('sel-enh-scene','scene'); lsel('sel-enh-style','style');
   lsel('sel-res','resolution'); lsel('sel-samp','sampler'); lsel('sel-sch','scheduler');
 
