@@ -545,40 +545,75 @@
       border: 1px solid var(--bdr); border-radius: var(--r-md);
       margin-bottom: 5px; overflow: hidden; background: var(--bg2);
     }
+    .accord-section.open { border-color: var(--bdr2); }
     .accord-hdr {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 12px; cursor: pointer; user-select: none; gap: 8px;
+      padding: 13px 14px; cursor: pointer; user-select: none; gap: 8px;
     }
     .accord-hdr:hover { background: rgba(255,255,255,.03); }
-    .accord-hdr-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .accord-hdr-left { display: flex; align-items: center; gap: 9px; min-width: 0; flex: 1; }
+    .accord-icon { color: var(--t3); flex-shrink: 0; display: flex; align-items: center; }
     .accord-title {
-      font-size: 12px; font-weight: 600; letter-spacing: .08em;
-      text-transform: uppercase; color: var(--t2); white-space: nowrap;
+      font-size: 13px; font-weight: 600; color: var(--t2); white-space: nowrap;
+      transition: color var(--tr);
     }
+    .accord-section.open .accord-title { color: var(--t1); }
+    .accord-hdr-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .accord-val {
-      font-size: 11px; color: var(--cyan-txt); font-weight: 500;
+      font-size: 12px; color: var(--cyan-txt); font-weight: 500;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      opacity: .85; max-width: 140px;
+      max-width: 120px;
     }
-    .accord-chevron { font-size: 10px; color: var(--t3); flex-shrink: 0; transition: transform .2s ease; }
+    .accord-chevron {
+      color: var(--t3); flex-shrink: 0;
+      transition: transform .2s ease; line-height: 1;
+      display: flex; align-items: center;
+    }
     .accord-section.open .accord-chevron { transform: rotate(180deg); }
-    .accord-body { display: none; padding: 0 12px 12px; }
+    .accord-body { display: none; padding: 0 14px 14px; }
     .accord-section.open .accord-body { display: block; }
 
-    /* Atmosphere pills */
-    .atm-group { margin-bottom: 10px; }
-    .atm-group:last-child { margin-bottom: 0; }
-    .atm-lbl { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--t3); margin-bottom: 5px; }
-    .atm-row { display: flex; flex-wrap: wrap; gap: 5px; }
-    .atm-btn {
-      display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border-radius: 20px;
-      background: transparent; border: 1px solid var(--bdr); font-size: 11px; font-weight: 500;
-      color: var(--t3); cursor: pointer; white-space: nowrap; font-family: inherit;
+    /* ═══════════════════════════════════════
+       ATMOSPHERE CARDS
+    ═══════════════════════════════════════ */
+    .atm-cards {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px; margin-top: var(--s3);
+      align-items: start;
+    }
+    .atm-card {
+      background: var(--bg2); border: 1px solid var(--bdr);
+      border-radius: var(--r-md); overflow: hidden;
+      cursor: pointer;
+      transition: border-color var(--tr);
+    }
+    .atm-card:hover { border-color: var(--bdr2); }
+    .atm-card.open { border-color: var(--bdr2); }
+    .atm-card-hdr {
+      padding: 9px 10px 7px 9px;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .atm-card-top { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+    .atm-card-top-left { display: flex; align-items: center; gap: 5px; }
+    .atm-card-icon { color: var(--t3); display: flex; align-items: center; flex-shrink: 0; }
+    .atm-card-lbl { font-size: 10px; color: var(--t3); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+    .atm-card-chev { color: var(--t3); transition: transform .2s; display: flex; align-items: center; }
+    .atm-card.open .atm-card-chev { transform: rotate(180deg); }
+    .atm-card-val { font-size: 12px; color: var(--t1); font-weight: 600; padding-left: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .atm-opts {
+      display: none; flex-wrap: wrap; gap: 4px;
+      padding: 7px 9px 9px; border-top: 1px solid var(--bdr);
+    }
+    .atm-card.open .atm-opts { display: flex; }
+    .atm-opt {
+      font-size: 10px; padding: 3px 7px; border-radius: 20px;
+      border: 1px solid var(--bdr); color: var(--t3);
+      background: transparent; cursor: pointer; font-family: inherit;
+      white-space: nowrap;
       transition: border-color var(--tr), color var(--tr), background var(--tr);
     }
-    .atm-btn:hover { border-color: var(--bdr2); color: var(--t2); background: rgba(255,255,255,.04); }
-    .atm-btn.active { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan-txt); font-weight: 600; }
-    .atm-btn.atm-none.active { background: rgba(255,255,255,.04); border-color: var(--bdr2); color: var(--t2); }
+    .atm-opt:hover { border-color: var(--bdr2); color: var(--t2); background: rgba(255,255,255,.04); }
+    .atm-opt.active { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan-txt); font-weight: 600; }
 
     /* Keep pill-row + st-pill for Subject Type pills */
     .pill-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: var(--s2); }
@@ -1986,7 +2021,8 @@ var S = {
   loading:false, visionLoading:false, visionSuccess:false, result:null, error:'', dbgLog:null,
   rndMode:'normal',
   subjectHistory:[],
-  accordOpen:{ scene:false, subjectType:false, style:false, atmosphere:false },
+  accordOpen:{ scene:false, subjectType:false, style:false },
+  atmOpen:{ lighting:false, mood:false, genre:false },
 };
 
 var ADV_DEFAULTS = { steps:'12', cfg:'1.5', sampler:'euler_ancestral', scheduler:'beta', seed:'', loras:[], resolution:'896x1152', customNeg:'' };
@@ -2956,6 +2992,18 @@ function buildTabBar(mob) {
   '</div>';
 }
 
+var ACCORD_ICONS = {
+  scene:       '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3.5" width="13" height="10" rx="1.5"/><circle cx="8" cy="8.5" r="2.3"/></svg>',
+  subjectType: '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="5.5" r="2.5"/><path d="M2.5 14.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/></svg>',
+  style:       '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l5 5-5 8-5-8z"/><line x1="3" y1="6.5" x2="13" y2="6.5"/></svg>',
+};
+var ATM_ICONS = {
+  lighting: '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.8"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/><line x1="3.2" y1="3.2" x2="4.6" y2="4.6"/><line x1="11.4" y1="11.4" x2="12.8" y2="12.8"/><line x1="12.8" y1="3.2" x2="11.4" y2="4.6"/><line x1="4.6" y1="11.4" x2="3.2" y2="12.8"/></svg>',
+  mood:     '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M5.5 10c.6.9 1.4 1.4 2.5 1.4s1.9-.5 2.5-1.4"/><circle cx="6" cy="7" r=".6" fill="currentColor" stroke="none"/><circle cx="10" cy="7" r=".6" fill="currentColor" stroke="none"/></svg>',
+  genre:    '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5l6-3.5 6 3.5-6 3.5z"/><path d="M2 10l6 3.5 6-3.5"/></svg>',
+};
+var SVG_CHEV = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,4 6,8 10,4"/></svg>';
+
 function buildLeftCol(mob) {
   var pHide = mob && S.mobilePane !== 'params';
   var h = '<div class="col col-l'+(pHide?' pane-hidden':'')+'">';
@@ -3039,33 +3087,46 @@ function buildLeftCol(mob) {
       return '<div class="sel-group"><span class="cat-label"><span class="cat-icon">'+grp.icon+'</span>'+esc(grp.label)+'</span><div class="sel-row">'+btns+'</div></div>';
     }).join('');
 
-    /* ATMOSPHERE pills */
-    var atmParts = [S.lighting, S.mood, S.genre].filter(Boolean);
-    var atmVal = atmParts.length ? esc(atmParts.join(' · ')) : '';
-    var noneLabel = t('noneOpt') || '—';
-    var lightHtml = '<div class="atm-group"><div class="atm-lbl">'+t('lLighting')+'</div><div class="atm-row">' +
-      LIGHTINGS.map(function(l){ return '<button class="atm-btn'+(S.lighting===l.label?' active':'')+'" data-lighting="'+esc(l.label)+'">'+(S.lang==='ua'&&l.labelUa?esc(l.labelUa):esc(l.label))+'</button>'; }).join('') +
-    '</div></div>';
-    var moodHtml = '<div class="atm-group"><div class="atm-lbl">'+t('lMood')+'</div><div class="atm-row">' +
-      '<button class="atm-btn atm-none'+(!S.mood?' active':'')+'" data-mood="">'+noneLabel+'</button>' +
-      MOODS.map(function(m){ return '<button class="atm-btn'+(S.mood===m.label?' active':'')+'" data-mood="'+esc(m.label)+'">'+(S.lang==='ua'&&m.labelUa?esc(m.labelUa):esc(m.label))+'</button>'; }).join('') +
-    '</div></div>';
-    var genreHtml = '<div class="atm-group"><div class="atm-lbl">'+t('lGenre')+'</div><div class="atm-row">' +
-      '<button class="atm-btn atm-none'+(!S.genre?' active':'')+'" data-genre="">'+noneLabel+'</button>' +
-      GENRES.map(function(g){ return '<button class="atm-btn'+(S.genre===g.label?' active':'')+'" data-genre="'+esc(g.label)+'">'+(S.lang==='ua'&&g.labelUa?esc(g.labelUa):esc(g.label))+'</button>'; }).join('') +
-    '</div></div>';
-
     function buildAccord(id, titleKey, val, body) {
       var open = S.accordOpen && S.accordOpen[id];
+      var icon = ACCORD_ICONS[id] || '';
       return '<div class="accord-section'+(open?' open':'')+'" data-accord="'+id+'">' +
         '<div class="accord-hdr">' +
           '<div class="accord-hdr-left">' +
+            '<span class="accord-icon">'+icon+'</span>' +
             '<span class="accord-title">'+t(titleKey)+'</span>' +
-            (val?'<span class="accord-val">'+val+'</span>':'') +
           '</div>' +
-          '<span class="accord-chevron">▾</span>' +
+          '<div class="accord-hdr-right">' +
+            (val?'<span class="accord-val">'+val+'</span>':'') +
+            '<span class="accord-chevron">'+SVG_CHEV+'</span>' +
+          '</div>' +
         '</div>' +
         '<div class="accord-body">'+body+'</div>' +
+      '</div>';
+    }
+
+    /* ATM cards (lighting / mood / genre) */
+    function buildAtmCard(key, labelKey, icon, items, current, noneAllowed) {
+      var open = S.atmOpen && S.atmOpen[key];
+      var noneLabel = t('noneOpt') || '—';
+      var curItem = items.find(function(x){ return x.label===current; });
+      var curDisplay = curItem ? (S.lang==='ua'&&curItem.labelUa?curItem.labelUa:curItem.label) : (noneAllowed?noneLabel:'');
+      var opts = (noneAllowed
+        ? '<button class="atm-opt'+(current===''?' active':'')+'" data-atm-key="'+key+'" data-atm-val="">'+noneLabel+'</button>'
+        : '') +
+        items.map(function(it){
+          var lbl = S.lang==='ua'&&it.labelUa ? it.labelUa : it.label;
+          return '<button class="atm-opt'+(current===it.label?' active':'')+'" data-atm-key="'+key+'" data-atm-val="'+esc(it.label)+'">'+esc(lbl)+'</button>';
+        }).join('');
+      return '<div class="atm-card'+(open?' open':'')+'" data-atm="'+key+'">' +
+        '<div class="atm-card-hdr">' +
+          '<div class="atm-card-top">' +
+            '<div class="atm-card-top-left"><span class="atm-card-icon">'+icon+'</span><span class="atm-card-lbl">'+t(labelKey)+'</span></div>' +
+            '<span class="atm-card-chev">'+SVG_CHEV+'</span>' +
+          '</div>' +
+          '<div class="atm-card-val">'+esc(curDisplay)+'</div>' +
+        '</div>' +
+        '<div class="atm-opts">'+opts+'</div>' +
       '</div>';
     }
 
@@ -3074,7 +3135,13 @@ function buildLeftCol(mob) {
       buildAccord('scene',       'lScene',       sceneVal,  sceneHtml) +
       buildAccord('subjectType', 'lSubjectType', subjVal,   '<div class="pill-row" style="margin-bottom:0">'+subjPills+'</div>') +
       buildAccord('style',       'lStyle',       styleVal,  styleHtml) +
-      buildAccord('atmosphere',  'lAtmosphere',  atmVal,    lightHtml+moodHtml+genreHtml) +
+    '</div>';
+
+    /* ATMOSPHERE — 3 окремі картки */
+    h += '<div class="atm-cards">' +
+      buildAtmCard('lighting', 'lLighting', ATM_ICONS.lighting, LIGHTINGS, S.lighting, false) +
+      buildAtmCard('mood',     'lMood',     ATM_ICONS.mood,     MOODS,     S.mood,     true)  +
+      buildAtmCard('genre',    'lGenre',    ATM_ICONS.genre,    GENRES,    S.genre,    true)  +
     '</div>';
   }
 
@@ -3535,9 +3602,9 @@ function attachEvents() {
     S.error = '';
     render();
   }); });
-  document.querySelectorAll('[data-scene]').forEach(function(el){ el.addEventListener('click', function(){ S.scene=el.dataset.scene; saveState(); render(); }); });
-  document.querySelectorAll('[data-style]').forEach(function(el){ el.addEventListener('click', function(){ S.style=el.dataset.style; saveState(); render(); }); });
-  document.querySelectorAll('[data-subtype]').forEach(function(el){ el.addEventListener('click', function(){ S.subjectType=el.dataset.subtype; saveState(); render(); }); });
+  document.querySelectorAll('[data-scene]').forEach(function(el){ el.addEventListener('click', function(){ S.scene=el.dataset.scene; if(S.accordOpen) S.accordOpen.scene=false; saveState(); render(); }); });
+  document.querySelectorAll('[data-style]').forEach(function(el){ el.addEventListener('click', function(){ S.style=el.dataset.style; if(S.accordOpen) S.accordOpen.style=false; saveState(); render(); }); });
+  document.querySelectorAll('[data-subtype]').forEach(function(el){ el.addEventListener('click', function(){ S.subjectType=el.dataset.subtype; if(S.accordOpen) S.accordOpen.subjectType=false; saveState(); render(); }); });
 
   document.querySelectorAll('[data-hist]').forEach(function(el){
     el.addEventListener('click', function(){
@@ -3650,15 +3717,28 @@ function attachEvents() {
       saveState(); render();
     });
   });
-  /* atmosphere pills */
-  document.querySelectorAll('[data-lighting]').forEach(function(el){
-    el.addEventListener('click', function(){ S.lighting = el.dataset.lighting; saveState(); patch('preview'); });
+  /* atm-card toggles */
+  document.querySelectorAll('[data-atm]').forEach(function(card){
+    card.querySelector('.atm-card-hdr').addEventListener('click', function(){
+      var key = card.dataset.atm;
+      if (!S.atmOpen) S.atmOpen = {};
+      var wasOpen = S.atmOpen[key];
+      S.atmOpen = { lighting:false, mood:false, genre:false };
+      S.atmOpen[key] = !wasOpen;
+      render();
+    });
   });
-  document.querySelectorAll('[data-mood]').forEach(function(el){
-    el.addEventListener('click', function(){ S.mood = el.dataset.mood; saveState(); patch('preview'); });
-  });
-  document.querySelectorAll('[data-genre]').forEach(function(el){
-    el.addEventListener('click', function(){ S.genre = el.dataset.genre; saveState(); patch('preview'); });
+  /* atm option selection */
+  document.querySelectorAll('[data-atm-key]').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var key = btn.dataset.atmKey;
+      var val = btn.dataset.atmVal;
+      S[key] = val;
+      if (!S.atmOpen) S.atmOpen = {};
+      S.atmOpen[key] = false;
+      saveState(); patch('preview'); render();
+    });
   });
   lsel('sel-enh-scene','scene'); lsel('sel-enh-style','style');
   lsel('sel-res','resolution'); lsel('sel-samp','sampler'); lsel('sel-sch','scheduler');
