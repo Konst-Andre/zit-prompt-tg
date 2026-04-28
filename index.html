@@ -408,12 +408,12 @@
       display: flex; gap: var(--s2); margin-top: var(--s3); align-items: stretch;
     }
     .btn-copy-primary {
-      flex: 1; height: 44px;
+      flex: 1; min-height: 44px; height: auto;
       display: flex; align-items: center; justify-content: center; gap: 8px;
       font-size: 14px; font-weight: 600;
     }
     .btn-regen-compact {
-      width: 44px; height: 44px; flex-shrink: 0;
+      width: 44px; min-height: 44px; height: auto; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
       font-size: 18px; border-radius: var(--r);
       border-color: rgba(47,129,247,.3) !important;
@@ -465,13 +465,17 @@
       border-color: var(--bdr); border-radius: 20px;
     }
     .result-hist-btn:hover { color: var(--acc-txt); border-color: rgba(47,129,247,.4); background: rgba(47,129,247,.06); }
-    /* footer refine */
-    .result-footer {
-      margin-top: var(--s5); padding-top: var(--s4);
-      border-top: 1px dashed var(--bdr); text-align: center;
+    /* improve-this — appears right after Copy/↺, always visible */
+    .result-improve-btn {
+      display: block; width: 100%; margin-top: var(--s2);
+      padding: 9px 16px; border-radius: 20px;
+      background: rgba(47,129,247,.08); border: 1px solid rgba(47,129,247,.28);
+      color: var(--acc-txt); font-size: 12px; font-weight: 500; font-family: inherit;
+      cursor: pointer; text-align: center; letter-spacing: .02em;
+      transition: background var(--tr), border-color var(--tr), color var(--tr), transform .1s;
     }
-    .result-footer-hint { font-size: 11px; color: var(--t4); margin-bottom: 8px; letter-spacing: .03em; }
-    .result-refine-btn { font-size: 12px; padding: 8px 18px; color: var(--acc-txt); border-color: rgba(47,129,247,.3); }
+    .result-improve-btn:hover { background: rgba(47,129,247,.16); border-color: var(--acc); }
+    .result-improve-btn:active { transform: scale(0.98); }
     /* icon-only compact buttons (Share + History) */
     .btn-icon-sq {
       flex: 0 0 auto;
@@ -571,7 +575,7 @@
       100% { border-color: var(--bdr); color: var(--t3); transform: scale(1); }
     }
 
-    .gen-row { display: flex; gap: var(--s2); align-items: stretch; margin-top: var(--s1); }
+    .gen-row { display: flex; gap: var(--s2); align-items: stretch; margin-top: var(--s4); }
     /* В TG — нативна MainButton внизу, дублюючу .btn-primary ховаємо */
     .in-telegram .gen-row .btn-primary { display: none; }
     .in-telegram .gen-row .btn-random,
@@ -841,12 +845,12 @@
        PREVIEW CARD — v2.0 NEW: standalone before Generate
     ═══════════════════════════════════════ */
     .preview-card {
-      background: linear-gradient(135deg, rgba(47,129,247,.13) 0%, rgba(12,20,34,.92) 100%);
-      border: 1px solid rgba(47,129,247,.35);
+      background: #040C1E;
+      border: 1px solid rgba(77,166,255,.55);
       border-radius: var(--r-md);
       padding: var(--s3) var(--s4);
       margin-bottom: var(--s3);
-      box-shadow: inset 0 1px 0 rgba(47,129,247,.1), 0 2px 8px rgba(0,0,0,.2);
+      box-shadow: 0 0 0 1px rgba(77,166,255,.12), inset 0 1px 0 rgba(77,166,255,.12), 0 4px 16px rgba(0,0,0,.45);
       animation: hintFade 180ms ease;
     }
     .preview-card-hdr {
@@ -854,14 +858,16 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: var(--s2);
+      gap: 8px;
     }
     .preview-card-title {
       font-size: 10px; font-weight: 700; letter-spacing: .16em;
       text-transform: uppercase; color: var(--acc);
+      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .preview-card-count {
-      font-size: 10px; color: var(--t4); font-family: 'JetBrains Mono', monospace;
-      white-space: nowrap; flex-shrink: 0;
+      font-size: 10px; color: var(--acc-txt); font-family: 'JetBrains Mono', monospace;
+      white-space: nowrap; flex-shrink: 0; opacity: .75;
     }
     .preview-token-row {
       display: flex; align-items: baseline; gap: 0; margin-bottom: 6px; flex-wrap: wrap;
@@ -1246,6 +1252,25 @@
       margin-bottom: 10px; padding-bottom: 6px;
       border-bottom: 1px solid var(--bdr);
     }
+    /* Collapsible sections inside adv panel — same style as output details */
+    .adv-details {
+      margin-bottom: var(--s2); border: 1px solid var(--bdr);
+      border-radius: var(--r-md); background: rgba(7,11,15,.4); overflow: hidden;
+    }
+    .adv-details[open] { background: var(--bg2); border-color: var(--bdr2); }
+    .adv-details-sum {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 11px 14px; cursor: pointer;
+      font-size: 12px; color: var(--t2); font-weight: 500;
+      list-style: none; gap: 8px; user-select: none;
+    }
+    .adv-details-sum::-webkit-details-marker { display: none; }
+    .adv-details-sum::before {
+      content: '▸'; color: var(--t4); flex-shrink: 0;
+      transition: transform .2s ease; display: inline-block;
+    }
+    .adv-details[open] .adv-details-sum::before { transform: rotate(90deg); }
+    .adv-details-body { padding: 4px 14px 14px; }
     .adv-actions {
       display: flex; gap: var(--s2); padding: 12px 20px;
       border-top: 1px solid var(--bdr); flex-shrink: 0;
@@ -2060,6 +2085,7 @@ const I18N = {
     mobParams: 'Params', mobOutput: 'Output',
     noneOpt: '— none —',
     lAtmosphere: 'Atmosphere', lPreview: 'Prompt Preview',
+    confSection: 'Configuration',
     advTitle: 'Advanced Settings',
     advNegLabel: 'Negative Prompt',
     advNegPlaceholder: 'Custom negative (auto if empty)',
@@ -2121,6 +2147,7 @@ const I18N = {
     mobParams: 'Параметри', mobOutput: 'Результат',
     noneOpt: '— немає —',
     lAtmosphere: 'Атмосфера', lPreview: 'Попередній перегляд',
+    confSection: 'Конфігурація',
     advTitle: 'Розширені налаштування',
     advNegLabel: 'Негативний промпт',
     advNegPlaceholder: 'Власний негативний (авто якщо порожньо)',
@@ -2253,6 +2280,8 @@ var S = {
   rndMode:'normal',
   outNegOpen: false,
   outParamsOpen: false,
+  advComfyOpen: false,
+  advNegOpen: false,
   subjectHistory:[],
   accordOpen:{ scene:false, subjectType:false, style:false },
   atmOpen:{ lighting:false, mood:false, genre:false },
@@ -3377,7 +3406,7 @@ var SVG_CLR  = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stro
 var SVG_CHECK= '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,8 6,12 14,4"/></svg>';
 var SVG_HIST = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><polyline points="8,5 8,8 10,10"/><path d="M2.5 4.5A6 6 0 0 1 8 2"/></svg>';
 var SVG_CAM  = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5.5a1 1 0 0 1 1-1h1.5l1-2h5l1 2H14a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1z"/><circle cx="8" cy="9" r="2.3"/></svg>';
-var SVG_SHUFFLE = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h7a4 4 0 0 1 4 4"/><polyline points="11 2 13 4 11 6"/><path d="M14 12H7a4 4 0 0 1-4-4"/><polyline points="5 14 3 12 5 10"/></svg>';
+var SVG_SHUFFLE = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="2.5"/><circle cx="5.5" cy="5.5" r=".9" fill="currentColor" stroke="none"/><circle cx="10.5" cy="5.5" r=".9" fill="currentColor" stroke="none"/><circle cx="5.5" cy="10.5" r=".9" fill="currentColor" stroke="none"/><circle cx="10.5" cy="10.5" r=".9" fill="currentColor" stroke="none"/><circle cx="8" cy="8" r=".9" fill="currentColor" stroke="none"/></svg>';
 var SVG_GEAR   = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="2.4"/><path d="M8 1.5v1.3M8 13.2v1.3M1.5 8h1.3M13.2 8h1.3M3.6 3.6l.9.9M11.5 11.5l.9.9M12.4 3.6l-.9.9M4.5 11.5l-.9.9"/></svg>';
 
 function buildLeftCol(mob) {
@@ -3553,7 +3582,7 @@ function buildLeftCol(mob) {
     }
 
     h += '<div class="config-block">' +
-      '<div class="config-title">Configuration</div>' +
+      '<div class="config-title">'+t('confSection')+'</div>' +
       buildAccord('style',       'lStyle',       styleVal,  styleHtml) +
       buildAccord('scene',       'lScene',       sceneVal,  sceneHtml) +
       buildAccord('subjectType', 'lSubjectType', subjVal, '<div class="pill-row" style="margin-bottom:0">'+subjPills+'</div>') +
@@ -3570,14 +3599,6 @@ function buildLeftCol(mob) {
     buildAtmPanel('genre',    GENRES,    S.genre,    true);
 
   h += '<hr>';
-
-  /* NEG PREVIEW — before sticky card to avoid iOS overlap */
-  var negDisp   = buildNegative();
-  var negCustom = S.customNeg && S.customNeg.trim();
-  h += '<div class="neg-preview">' +
-    '<span class="neg-preview-label">' + t('pvNeg') + (negCustom?' ✎':'') + '</span>' +
-    '<span class="neg-preview-text">'+esc(negDisp)+'</span>' +
-  '</div>';
 
   /* PREVIEW CARD */
   var pvCard = buildPreviewCard();
@@ -3664,6 +3685,7 @@ function buildRightCol(mob, keyOk) {
         '<button class="btn-primary btn-copy-primary" id="b-cp-pos">'+SVG_COPY+' '+t('btnCopy')+'</button>' +
         '<button class="btn-regen-compact btn-ghost" id="b-regen" title="'+t('btnRegenerate')+'">↺</button>' +
       '</div>' +
+      '<button class="result-improve-btn" id="b-improve-this">'+t('btnImproveThis')+'</button>' +
     '</div>';
 
     /* SECONDARY: collapsible negative */
@@ -3688,18 +3710,13 @@ function buildRightCol(mob, keyOk) {
     '</details>';
 
     /* TERTIARY: history action */
+    var histCount = loadHistory().length;
     h += '<div class="result-secondary-actions">' +
-      '<button class="btn-ghost result-hist-btn" id="b-hist" title="'+t('histBtnTitle')+'">'+SVG_HIST+' <span style="font-size:11px;margin-left:4px">'+(S.lang==='ua'?'Історія':'History')+'</span></button>' +
+      '<button class="btn-ghost result-hist-btn" id="b-hist" title="'+t('histBtnTitle')+'">'+SVG_HIST+' <span style="font-size:11px;margin-left:4px">'+(S.lang==='ua'?'Історія':'History')+(histCount?' · '+histCount:'')+'</span></button>' +
     '</div>';
 
     if (r.changes) h += '<div class="info-card"><span class="lbl">'+t('outChanged')+'</span><p>'+esc(r.changes)+'</p></div>';
     if (r.notes)   h += '<div class="info-card"><span class="lbl">'+t('outTip')+'</span><p>'+esc(r.notes)+'</p></div>';
-
-    /* FOOTER: refine */
-    h += '<div class="result-footer">' +
-      '<div class="result-footer-hint">'+(S.lang==='ua'?'Хочеш інший ракурс або правки?':'Want a different angle or tweaks?')+'</div>' +
-      '<button class="btn-ghost result-refine-btn" id="b-improve-this">'+t('btnImproveThis')+' →</button>' +
-    '</div>';
 
     h += '</div>';
   }
@@ -3725,6 +3742,7 @@ function buildAdvPanel() {
   }).join('');
   var skAdv = S.sampler + '+' + S.scheduler;
   var shAdv = SAMPLER_HINTS[skAdv] || { text:'Custom combination', c:'#6E7681' };
+  var pp = { sampler: S.sampler, steps: S.steps };
 
   return '<div class="adv-overlay" id="adv-overlay"></div>' +
   '<div class="adv-sheet" id="adv-sheet">' +
@@ -3734,41 +3752,50 @@ function buildAdvPanel() {
       '<button class="btn-ghost" id="b-adv-close" style="padding:3px 8px">✕</button>' +
     '</div>' +
     '<div class="adv-body">' +
-      '<div class="adv-section-title">COMFYUI CONFIG</div>' +
-      '<span class="tech-label">'+t('outParams')+'</span>' +
-      '<div class="tech-bar">' +
-        '<span class="tc-chip" title="Resolution"><select id="sel-res">' +
-          RESOLUTIONS.map(function(r){ return '<option value="'+esc(r.value)+'"'+(S.resolution===r.value?' selected':'')+'>'+(RES_LABEL2[r.value]||r.value)+'</option>'; }).join('') +
-        '</select></span>' +
-        '<span class="tc-chip">' +
-          '<span class="tc-label">smp</span><select id="sel-samp">' +
-            SAMPLERS.map(function(s){ return '<option value="'+esc(s)+'"'+(S.sampler===s?' selected':'')+'>'+(SAMP_SHORT2[s]||s)+'</option>'; }).join('') +
-          '</select>' +
-          '<span class="tc-sep" style="margin:0 2px">·</span>' +
-          '<span class="tc-label">sch</span><select id="sel-sch">' +
-            SCHEDULERS.map(function(s){ var SCH_SHORT={'FlowMatchEulerDiscrete':'FlowMatch','sgm_uniform':'sgm_unif'}; return '<option value="'+esc(s)+'"'+(S.scheduler===s?' selected':'')+'>'+(SCH_SHORT[s]||s)+'</option>'; }).join('') +
-          '</select>' +
-        '</span>' +
-        '<span class="tc-chip"><span class="tc-label">steps</span><input type="text" id="inp-steps" class="tc-inp-steps" value="'+esc(S.steps)+'"></span>' +
-        '<span class="tc-chip"><span class="tc-label">cfg</span><input type="text" id="inp-cfg" class="tc-inp-cfg" value="'+esc(S.cfg)+'"></span>' +
-        '<span class="tc-chip"><span class="tc-label">seed</span>' +
-          '<span id="tc-seed-val" style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--t1);width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle">'+(S.seed?esc(S.seed):'<span style="color:var(--t4)">rand</span>')+'</span>' +
-          '<button id="b-seed" title="Random seed" style="background:transparent;border:none;color:var(--t2);cursor:pointer;padding:0;font-size:13px;line-height:1">🎲</button>' +
-        '</span>' +
-        (shAdv.text?'<span class="tc-hint" style="color:'+shAdv.c+'">'+shAdv.text+'</span>':'') +
-        (S.loras.length>0
-          ? loraChipsAdv+'<button class="btn-text" id="b-add-lora" style="font-size:11px;color:var(--t4);padding:5px 8px">+ LoRA</button>'
-          : '<button class="tc-chip" id="b-add-lora" style="cursor:pointer;border-style:dashed;color:var(--t3);background:transparent">LoRA +</button>') +
-      '</div>' +
-      '<div class="adv-section-title" style="margin-top:18px">NEGATIVE PROMPT</div>' +
-      '<div class="field" style="margin-bottom:0">' +
-        '<div class="f-hdr" style="margin-bottom:6px">' +
-          '<label class="lbl" style="font-size:11px">'+t('advNegLabel')+'</label>' +
-          (S.customNeg?'<button class="btn-text" id="b-adv-neg-clr" style="font-size:11px;color:var(--red-txt)">✕ Reset to auto</button>':'') +
+      '<details class="adv-details"'+(S.advComfyOpen?' open':'')+' data-adv-detail="comfy">' +
+        '<summary class="adv-details-sum">' +
+          '<span>ComfyUI Config <span class="result-details-count">· '+pp.sampler+' · '+pp.steps+' steps</span></span>' +
+        '</summary>' +
+        '<div class="adv-details-body">' +
+          '<span class="tech-label">'+t('outParams')+'</span>' +
+          '<div class="tech-bar">' +
+            '<span class="tc-chip" title="Resolution"><select id="sel-res">' +
+              RESOLUTIONS.map(function(r){ return '<option value="'+esc(r.value)+'"'+(S.resolution===r.value?' selected':'')+'>'+(RES_LABEL2[r.value]||r.value)+'</option>'; }).join('') +
+            '</select></span>' +
+            '<span class="tc-chip">' +
+              '<span class="tc-label">smp</span><select id="sel-samp">' +
+                SAMPLERS.map(function(s){ return '<option value="'+esc(s)+'"'+(S.sampler===s?' selected':'')+'>'+(SAMP_SHORT2[s]||s)+'</option>'; }).join('') +
+              '</select>' +
+              '<span class="tc-sep" style="margin:0 2px">·</span>' +
+              '<span class="tc-label">sch</span><select id="sel-sch">' +
+                SCHEDULERS.map(function(s){ var SCH_SHORT={'FlowMatchEulerDiscrete':'FlowMatch','sgm_uniform':'sgm_unif'}; return '<option value="'+esc(s)+'"'+(S.scheduler===s?' selected':'')+'>'+(SCH_SHORT[s]||s)+'</option>'; }).join('') +
+              '</select>' +
+            '</span>' +
+            '<span class="tc-chip"><span class="tc-label">steps</span><input type="text" id="inp-steps" class="tc-inp-steps" value="'+esc(S.steps)+'"></span>' +
+            '<span class="tc-chip"><span class="tc-label">cfg</span><input type="text" id="inp-cfg" class="tc-inp-cfg" value="'+esc(S.cfg)+'"></span>' +
+            '<span class="tc-chip"><span class="tc-label">seed</span>' +
+              '<span id="tc-seed-val" style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--t1);width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle">'+(S.seed?esc(S.seed):'<span style="color:var(--t4)">rand</span>')+'</span>' +
+              '<button id="b-seed" title="Random seed" style="background:transparent;border:none;color:var(--t2);cursor:pointer;padding:0;font-size:13px;line-height:1">🎲</button>' +
+            '</span>' +
+            (shAdv.text?'<span class="tc-hint" style="color:'+shAdv.c+'">'+shAdv.text+'</span>':'') +
+            (S.loras.length>0
+              ? loraChipsAdv+'<button class="btn-text" id="b-add-lora" style="font-size:11px;color:var(--t4);padding:5px 8px">+ LoRA</button>'
+              : '<button class="tc-chip" id="b-add-lora" style="cursor:pointer;border-style:dashed;color:var(--t3);background:transparent">LoRA +</button>') +
+          '</div>' +
         '</div>' +
-        '<textarea id="inp-custom-neg" rows="3" style="font-size:12px;font-family:\'JetBrains Mono\',monospace;min-height:72px" placeholder="'+t('advNegPlaceholder')+'">'+esc(S.customNeg)+'</textarea>' +
-        '<p style="font-size:10px;color:var(--t4);margin-top:4px">Auto: <em style="color:var(--t3)">'+esc(buildNegative(true))+'</em></p>' +
-      '</div>' +
+      '</details>' +
+      '<details class="adv-details"'+(S.advNegOpen?' open':'')+' data-adv-detail="neg">' +
+        '<summary class="adv-details-sum">' +
+          '<span>'+t('advNegLabel')+(S.customNeg?' <span class="result-details-count">· custom</span>':'')+'</span>' +
+        '</summary>' +
+        '<div class="adv-details-body">' +
+          '<div class="f-hdr" style="margin-bottom:6px">' +
+            (S.customNeg?'<button class="btn-text" id="b-adv-neg-clr" style="font-size:11px;color:var(--red-txt);margin-left:auto">✕ Reset to auto</button>':'') +
+          '</div>' +
+          '<textarea id="inp-custom-neg" rows="3" style="font-size:12px;font-family:\'JetBrains Mono\',monospace;min-height:72px" placeholder="'+t('advNegPlaceholder')+'">'+esc(S.customNeg)+'</textarea>' +
+          '<p style="font-size:10px;color:var(--t4);margin-top:4px">Auto: <em style="color:var(--t3)">'+esc(buildNegative(true))+'</em></p>' +
+        '</div>' +
+      '</details>' +
     '</div>' +
     '<div class="adv-actions">' +
       '<button class="btn-primary btn-secondary" id="b-adv-reset" style="margin-top:0;font-size:13px;padding:10px 16px;width:auto">'+t('advReset')+'</button>' +
@@ -3797,11 +3824,11 @@ function buildHistPanel() {
         '</div>' +
         '<div class="hist-subject">'+subjectDisp+'</div>' +
         '<div class="hist-positive">'+esc(h.positive.slice(0,120))+'</div>' +
-        '<div style="display:flex;gap:6px;margin-top:7px">' +
-          '<button class="btn-ghost" data-hist-insert="'+i+'" style="font-size:11px;padding:3px 8px">'+t('histInsert')+'</button>' +
-          '<button class="btn-ghost" data-hist-use="'+i+'" style="font-size:11px;padding:3px 8px;color:var(--acc-txt);border-color:rgba(47,129,247,.3)">'+t('histUse')+'</button>' +
-          '<button class="btn-copy" data-hist-copy="'+i+'" style="font-size:11px;padding:3px 8px;margin-left:auto">⎘ '+t('histCopyItem')+'</button>' +
-          '<button class="btn-clr" data-hist-del="'+i+'" style="font-size:11px;padding:3px 8px">✕</button>' +
+        '<div style="display:flex;gap:6px;margin-top:7px;align-items:center">' +
+          '<button class="btn-ghost" data-hist-insert="'+i+'" style="font-size:11px;padding:4px 12px">'+t('histInsert')+'</button>' +
+          '<button class="btn-ghost" data-hist-use="'+i+'" style="font-size:11px;padding:4px 12px;color:var(--acc-txt);border-color:rgba(47,129,247,.3)">'+t('histUse')+'</button>' +
+          '<button class="btn-copy" data-hist-copy="'+i+'" style="margin-left:auto" title="'+t('histCopyItem')+'">'+SVG_COPY+'</button>' +
+          '<button class="btn-clr" data-hist-del="'+i+'" title="'+t('histDelItem')+'">'+SVG_CLR+'</button>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -3947,6 +3974,27 @@ function attachEvents() {
   on('b-adv-apply', 'click', function(){ S.advOpen=false; if(tg&&tg.BackButton) tg.BackButton.hide(); render(); });
   on('b-adv-reset', 'click', function(){ resetAdv(); render(); });
   on('b-adv-neg-clr', 'click', function(){ S.customNeg=''; render(); });
+
+  /* adv collapsible sections state */
+  document.querySelectorAll('.adv-details').forEach(function(d){
+    d.addEventListener('toggle', function(){
+      if (d.dataset.advDetail === 'comfy') S.advComfyOpen = d.open;
+      else if (d.dataset.advDetail === 'neg') S.advNegOpen = d.open;
+    });
+  });
+
+  on('b-improve-this', 'click', function(){
+    if (!S.result) return;
+    S.subject = S.result.positive;
+    S.refineMode = true;
+    S.mobilePane = 'params';
+    S.error = '';
+    render();
+    requestAnimationFrame(function(){
+      var ta = document.getElementById('inp-sub');
+      if (ta) { ta.focus(); ta.scrollIntoView({ behavior:'smooth', block:'center' }); }
+    });
+  });
 
   /* tap overlay to close */
   (function(){
@@ -4270,22 +4318,6 @@ function attachEvents() {
       analyzeImage(file);
     });
   })();
-  on('b-improve-this', 'click', function() {
-    if (!S.result) return;
-    S.subject = S.result.positive;
-    S.refineMode = true;
-    S.mobilePane = 'params';
-    S.error = '';
-    render();
-    requestAnimationFrame(function() {
-      var ta = document.getElementById('inp-sub');
-      if (ta) {
-        ta.focus();
-        ta.setSelectionRange(0, 0);
-        ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    });
-  });
 
   /* ── RANDOM BUTTON ── */
   var rndBtn = document.getElementById('b-random');
@@ -4298,6 +4330,10 @@ function attachEvents() {
       rndBtn.classList.add('fired');
       setTimeout(function(){ rndBtn.classList.remove('fired'); }, 250);
       doRandom(mode);
+      requestAnimationFrame(function(){
+        var ta = document.getElementById('inp-sub');
+        if (ta) ta.scrollIntoView({ behavior:'smooth', block:'center' });
+      });
       var badge = document.getElementById('rnd-badge');
       if (badge) {
         badge.textContent = mode==='creative' ? 'Shift: creative mode' : '';
