@@ -367,6 +367,20 @@
     .btn-clr:hover { opacity: 1; border-color: var(--red-bdr); color: var(--red-txt); background: var(--red-bg); }
     .btn-clr:active { transform: scale(0.92); opacity: 1; }
     .btn-clr.cleared { opacity: 1; background: var(--red-bg); border-color: var(--red-bdr); color: var(--red-txt); }
+    /* Mode toggle — Create ↔ Refine */
+    .mode-toggle {
+      background: rgba(77,166,255,.08);
+      border: 1px solid rgba(77,166,255,.2);
+      color: var(--t2); padding: 4px 10px;
+      border-radius: 12px; font-size: 11px; font-weight: 600;
+      cursor: pointer; font-family: inherit; letter-spacing: .02em;
+      transition: all .15s ease; white-space: nowrap;
+    }
+    .mode-toggle.refine {
+      background: rgba(77,166,255,.16);
+      border-color: var(--acc); color: var(--acc-hi);
+    }
+    .mode-toggle:active { transform: scale(0.96); }
 
     /* ═══════════════════════════════════════
        OUTPUT ACTIONS — v2.0: Regenerate primary
@@ -2221,11 +2235,10 @@ if (PROXY_URL) {
 var S = {
   apiKey:'', rememberKey:false, model:'qwen/qwen3-32b',
   apiOpen:false, dbgOpen:false, mobilePane:'params',
-  advOpen:false, histOpen:false, improvePreset:'',
-  mode:'generate', lang:'en',
+  advOpen:false, histOpen:false,
+  refineMode:false, lang:'en',
   scene:'portrait', style:'photorealistic', subject:'', subjectType:'none',
   lighting:'Cinematic', mood:'', genre:'', resolution:'896x1152',
-  existing:'',
   loras:[],
   steps:'12', cfg:'1.5', sampler:'euler_ancestral', scheduler:'beta', seed:'',
   customNeg:'',
@@ -2285,7 +2298,7 @@ var PERSIST_KEYS = [
   'scene','style','subjectType',
   'lighting','mood','genre','resolution',
   'sampler','scheduler','steps','cfg',
-  'model','customNeg','loras','seed','improvePreset','subject'
+  'model','customNeg','loras','seed','subject'
 ];
 
 function saveState() {
@@ -2523,21 +2536,22 @@ function buildUser() {
   var w = parts[0], h = parts[1];
   var orient = (+w < +h) ? 'portrait' : (+w > +h) ? 'landscape' : 'square';
   var styleTok = buildStyleTokens(st);
-  if (S.mode === 'enhance') {
+  /* Refine mode: detect from flag or content signature */
+  var looksLikeExisting = S.refineMode || /\<lora:|score_\d|\(\(|masterpiece|best quality/i.test(S.subject);
+  if (looksLikeExisting && S.subject.trim().length > 30) {
     var subjEnhTok = buildSubjectTokens(S.subjectType, styleTok);
-    var presetInstr = S.improvePreset === 'fix'     ? 'Priority: remove SDXL/Pony-specific tags, fix comma-separated token lists into natural prose.\n'
-                    : S.improvePreset === 'zit'     ? 'Priority: rewrite entirely as natural English prose optimized for modern LLM text encoders, remove all SDXL tags.\n'
-                    : S.improvePreset === 'enhance' ? 'Priority: enrich with additional lighting, texture, atmosphere and compositional details.\n'
-                    : '';
-    var sceneCtx = sc.label ? '\nTarget scene: ' + sc.label : '';
+    var sceneCtx = sc.label ? '\nTarget framing: ' + sc.label : '';
     var styleCtx = st.label ? '\nTarget style: ' + st.label : '';
-    return 'Improve this prompt for AI image generation. Fix SDXL tags, rewrite as natural prose for modern text encoders.\n' +
+    var lightCtx = S.lighting ? '\nAdd lighting context: ' + S.lighting : '';
+    var moodCtx  = S.mood     ? '\nAdd mood: ' + S.mood : '';
+    return 'Refine this image prompt for modern AI text encoders.\n' +
+      'Remove SDXL/Pony tags, parenthetical emphasis, score tags, danbooru-style comma lists.\n' +
+      'Rewrite as natural descriptive prose. Preserve the creative intent.\n' +
       'UI language: ' + (S.lang === 'ua' ? 'Ukrainian — write <notes> and <changes> in Ukrainian' : 'English') + '\n' +
-      presetInstr +
-      'After <notes> add: <changes>bullet list of improvements</changes>\n' +
-      (subjEnhTok ? '\nSubject focus (use only if relevant): ' + subjEnhTok : '') +
-      sceneCtx + styleCtx +
-      '\n\nPrompt: "' + S.existing.slice(0, 1500) + '"';
+      'After <notes> add: <changes>bullet list of what changed</changes>\n' +
+      (subjEnhTok ? '\nSubject context (use if relevant): ' + subjEnhTok : '') +
+      sceneCtx + styleCtx + lightCtx + moodCtx +
+      '\n\nExisting prompt: "' + S.subject.slice(0, 1500) + '"';
   }
   var subjTok  = buildSubjectTokens(S.subjectType, styleTok);
   var genreVal = (GENRES.find(function(x){return x.label===S.genre;})||{value:''}).value || 'none';
@@ -2888,8 +2902,7 @@ async function analyzeImage(file) {
 async function generate() {
   // Pre-checks — повертаємось РАНО, _ac не торкаємось
   if (!PROXY_URL && !S.apiKey.trim()) { S.error=t('errNoKey'); S.apiOpen=true; renderImmediate(); forceRepaint(); return; }
-  if (S.mode==='generate' && !S.subject.trim()) { S.error=t('errNoSubject'); renderImmediate(); forceRepaint(); return; }
-  if (S.mode==='enhance'  && !S.existing.trim()) { S.error=t('errNoExisting'); renderImmediate(); forceRepaint(); return; }
+  if (!S.subject.trim()) { S.error=t('errNoSubject'); renderImmediate(); forceRepaint(); return; }
 
   // Abort попередній запит якщо є. Він спіймає AbortError,
   // перевірить ownership (_ac !== myAc) і вийде мовчки.
@@ -3161,9 +3174,7 @@ function renderImmediate() {
    PATCH — хірургічні DOM-оновлення без повного render
 ═══════════════════════════════════════════════════ */
 function canGenerate() {
-  if (S.mode === 'generate') return !!S.subject.trim();
-  if (S.mode === 'enhance')  return !!S.existing.trim();
-  return false;
+  return !!S.subject.trim();
 }
 
 function syncMainButton() {
@@ -3176,7 +3187,7 @@ function syncMainButton() {
     tg.MainButton.show();
     var label = S.loading
       ? (S.lang === 'ua' ? '⏳ Генерую…' : '⏳ Generating…')
-      : (S.mode === 'enhance' ? t('btnOptimize') : '✦ Generate');
+      : (S.refineMode ? t('btnOptimize') : '✦ Generate');
     tg.MainButton.setText(label);
     if (S.loading) tg.MainButton.showProgress(false);
     else           tg.MainButton.hideProgress();
@@ -3341,13 +3352,7 @@ function buildDebugPanel() {
     '<button class="btn-ghost" id="b-dbg-close" style="padding:3px 8px">✕</button></div>'+dbInner+'</div>';
 }
 
-function buildTabBar(mob) {
-  if (mob) return '';
-  return '<div class="tab-bar">' +
-    '<button class="tab-btn'+(S.mode==='generate'?' active':'')+'" data-mode="generate">'+t('tabGenerate')+'</button>' +
-    '<button class="tab-btn'+(S.mode==='enhance'?' active':'')+'" data-mode="enhance">'+t('tabOptimize')+' <span style="font-size:10px;font-weight:400;opacity:.55;letter-spacing:.01em">'+t('tabOptimizeNote')+'</span></button>' +
-  '</div>';
-}
+function buildTabBar(mob) { return ''; }
 
 var ACCORD_ICONS = {
   scene:       '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3.5" width="13" height="10" rx="1.5"/><circle cx="8" cy="8.5" r="2.3"/></svg>',
@@ -3370,16 +3375,8 @@ function buildLeftCol(mob) {
   var pHide = mob && S.mobilePane !== 'params';
   var h = '<div class="col col-l'+(pHide?' pane-hidden':'')+'">';
 
-  if (mob) {
-    h += '<div class="mob-mode-sw" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s2);margin-bottom:16px">' +
-      '<button class="btn-primary'+(S.mode==='generate'?'':' btn-secondary')+'" data-mode="generate" style="margin-top:0;font-size:12px;padding:10px 4px">'+t('tabGenerate')+'</button>' +
-      '<button class="btn-primary'+(S.mode==='enhance'?'':' btn-secondary')+'" data-mode="enhance" style="margin-top:0;font-size:12px;padding:10px 4px">'+t('tabOptimize')+'</button>' +
-    '</div>';
-  }
-
-  if (S.mode === 'generate') {
-    /* SUBJECT */
-    var stNow = STYLES.find(function(x){return x.id===S.style;}) || {};
+  /* SUBJECT */
+  var stNow = STYLES.find(function(x){return x.id===S.style;}) || {};
     var stPh  = stNow.example || 'красива жінка під дощем у Токіо';
     var histHtml = '';
     if (S.subjectHistory.length > 0) {
@@ -3396,24 +3393,34 @@ function buildLeftCol(mob) {
           ? '<div class="vs-c-success"><span class="vs-ok">✓ '+t('visionFill')+'</span><button class="vs-retry" id="b-vision-retry">↺ '+t('visionRetry')+'</button></div>'
           : '<div class="vs-c-zone" id="b-vision"><span class="vs-c-icon">'+SVG_CAM+'</span><div><div class="vs-c-lbl">'+t('visionBtn')+'</div><div class="vs-c-sub">'+t('visionHint')+'</div></div><span class="vs-c-right">'+t('visionDrop').replace(' & ','<br>&nbsp;').replace(' · ','<br>')+'</span></div>'
       );
+    var subLabel       = S.refineMode ? (S.lang==='ua'?'ПРОМПТ ДЛЯ РЕФАЙНУ':'EXISTING PROMPT') : t('lPrompt');
+    var subPlaceholder = S.refineMode
+      ? (S.lang==='ua' ? 'Встав готовий промпт сюди (SDXL/Pony/будь-який)…&#10;&#10;Конфігурація нижче стане цільовим контекстом.' : 'Paste an existing prompt here (SDXL/Pony/anything)…&#10;&#10;Configuration below becomes the target context.')
+      : ('e.g: '+esc(stPh)+'&#10;• your own idea here');
+    var subRows        = S.refineMode ? 5 : 3;
+    var subWarnAt      = S.refineMode ? 1200 : 300;
+
     h += '<div class="prompt-main">' +
       '<div class="field">' +
         '<div class="f-hdr">' +
-          '<label class="lbl">'+t('lPrompt')+'</label>' +
+          '<label class="lbl">'+subLabel+'</label>' +
           '<div style="display:flex;align-items:center;gap:6px">' +
+            '<button class="mode-toggle'+(S.refineMode?' refine':'')+'" id="b-toggle-refine" title="'+(S.refineMode?(S.lang==='ua'?'Переключити в режим ідеї':'Switch to idea mode'):(S.lang==='ua'?'Переключити в режим рефайну':'Switch to refine mode'))+'">' +
+              (S.refineMode ? '↺ '+(S.lang==='ua'?'Рефайн':'Refine') : '✦ '+(S.lang==='ua'?'Ідея':'Idea')) +
+            '</button>' +
             '<button class="btn-copy" id="b-cp-sub" title="'+t('btnCopySubject')+'"'+(S.subject.trim()?'':' style="display:none"')+'>'+SVG_COPY+'</button>' +
             '<button class="btn-clr" id="b-clr-sub" title="'+t('btnClearTitle')+'"'+(S.subject.trim()?'':' style="display:none"')+'>'+SVG_CLR+'</button>' +
             (loadHistory().length ? '<button class="btn-copy" id="b-hist-subj" title="'+t('histBtnTitle')+'">'+SVG_HIST+'</button>' : '') +
           '</div>' +
         '</div>' +
         '<div class="textarea-wrap">' +
-          '<textarea id="inp-sub" rows="3" placeholder="e.g: '+esc(stPh)+'&#10;• your own idea here">'+esc(S.subject)+'</textarea>' +
-          '<span class="sub-count-inner'+(S.subject.length > 300 ? ' warn' : '')+'">' + (S.subject.length || '') + '</span>' +
+          '<textarea id="inp-sub" rows="'+subRows+'" placeholder="'+subPlaceholder+'">'+esc(S.subject)+'</textarea>' +
+          '<span class="sub-count-inner'+(S.subject.length > subWarnAt ? ' warn' : '')+'">' + (S.subject.length || '') + '</span>' +
         '</div>' +
         histHtml +
-        visionStripHtml +
+        (!S.refineMode ? visionStripHtml : '') +
         '<div style="text-align:right;font-size:10px;margin-top:10px;margin-bottom:4px;opacity:.6">' +
-          '<span class="hint">'+t('lPromptHint')+'</span>' +
+          '<span class="hint">'+(S.refineMode ? (S.lang==='ua'?'будь-яка мова':'any language') : t('lPromptHint'))+'</span>' +
         '</div>' +
       '</div>' +
     '</div>';
@@ -3552,55 +3559,12 @@ function buildLeftCol(mob) {
     buildAtmPanel('lighting', LIGHTINGS, S.lighting, true) +
     buildAtmPanel('mood',     MOODS,     S.mood,     true)  +
     buildAtmPanel('genre',    GENRES,    S.genre,    true);
-  }
-
-  if (S.mode === 'enhance') {
-    var ec = S.existing.length;
-    var ecColor = ec>1400?'var(--red)':ec>1000?'var(--amber)':'var(--t4)';
-
-    /* Context row: Scene + Style selects */
-    var sceneOpts = SCENES.map(function(sc){ return '<option value="'+esc(sc.id)+'"'+(S.scene===sc.id?' selected':'')+'>'+esc(sc.label)+'</option>'; }).join('');
-    var styleOpts = STYLES.map(function(st){ return '<option value="'+esc(st.id)+'"'+(S.style===st.id?' selected':'')+'>'+esc(st.label)+'</option>'; }).join('');
-    h += '<div class="secondary-section"><div class="sec-block">' +
-      '<div class="f-hdr" style="margin-bottom:4px"><span class="grp-lbl" style="margin-top:0">'+t('lImproveCtx')+'</span></div>' +
-      '<div class="three-col" style="grid-template-columns:1fr 1fr">' +
-        '<div class="field"><div class="f-hdr"><label class="lbl" style="font-size:10px">'+t('lScene')+'</label></div>' +
-        '<select id="sel-enh-scene">'+sceneOpts+'</select></div>' +
-        '<div class="field"><div class="f-hdr"><label class="lbl" style="font-size:10px">'+t('lStyle')+'</label></div>' +
-        '<select id="sel-enh-style">'+styleOpts+'</select></div>' +
-      '</div>' +
-      /* Quick presets */
-      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">' +
-        ['fix','zit','enhance'].map(function(p){
-          var lbl = p==='fix'?t('presetFix'):p==='zit'?t('presetZIT'):t('presetEnhance');
-          var active = S.improvePreset===p;
-          return '<button class="btn-ghost'+(active?' p-active':'')+'" data-preset="'+p+'" style="font-size:11px;padding:4px 10px'+(active?';color:var(--acc-txt);border-color:var(--acc)':'')+'">' + lbl + '</button>';
-        }).join('') +
-      '</div>' +
-    '</div></div>';
-
-    /* Existing prompt textarea */
-    h += '<div class="field">' +
-    '<div class="prompt-main" id="pm-exist">' +
-      '<div class="f-hdr">' +
-        '<label class="enhance-lbl lbl">'+t('lExisting')+'</label>' +
-        '<div style="display:flex;align-items:center;gap:6px">' +
-          '<span class="hint">'+t('lExistingHint')+' &nbsp;·&nbsp; <span style="color:'+ecColor+'">'+ec+'/1500</span></span>' +
-          '<button class="btn-copy" id="b-cp-exist" title="'+t('btnCopySubject')+'"'+(S.existing.trim()?'':' style="display:none"')+'>'+SVG_COPY+'</button>' +
-          '<button class="btn-clr" id="b-clr-exist" title="'+t('btnClearTitle')+'"'+(S.existing.trim()?'':' style="display:none"')+'>'+SVG_CLR+'</button>' +
-        '</div>' +
-      '</div>' +
-      '<textarea id="inp-exist" rows="4" style="min-height:80px" maxlength="1500" placeholder="e.g: beautiful girl, best quality, masterpiece...&#10;&#10;or: дівчина-кіборг у нічному місті">'+esc(S.existing)+'</textarea>' +
-    '</div></div>';
-  }
 
   h += '<hr>';
 
   /* PREVIEW CARD */
-  if (S.mode === 'generate') {
-    var pvCard = buildPreviewCard();
-    h += '<div id="preview-card-wrap">' + (pvCard||'') + '</div>';
-  }
+  var pvCard = buildPreviewCard();
+  h += '<div id="preview-card-wrap">' + (pvCard||'') + '</div>';
 
   /* ERROR */
   if (S.error) {
@@ -3612,53 +3576,31 @@ function buildLeftCol(mob) {
   }
 
   /* NEG PREVIEW */
-  if (S.mode === 'generate') {
-    var negDisp   = buildNegative();
-    var negCustom = S.customNeg && S.customNeg.trim();
-    h += '<div class="neg-preview">' +
-      '<span class="neg-preview-label">' + t('pvNeg') + (negCustom?' ✎':'') + '</span>' +
-      '<span class="neg-preview-text">'+esc(negDisp)+'</span>' +
-    '</div>';
-  }
+  var negDisp   = buildNegative();
+  var negCustom = S.customNeg && S.customNeg.trim();
+  h += '<div class="neg-preview">' +
+    '<span class="neg-preview-label">' + t('pvNeg') + (negCustom?' ✎':'') + '</span>' +
+    '<span class="neg-preview-text">'+esc(negDisp)+'</span>' +
+  '</div>';
 
   /* GENERATE ROW */
   var advChanged = isAdvChanged();
-  if (S.mode === 'generate') {
-    var badgeText = '', badgeClass = 'rnd-badge';
-    if (S.rndMode === 'creative') { badgeText='Shift: creative mode'; badgeClass+=' creative'; }
-    else if (S.rndMode === 'wild') { badgeText='DblClick: max wild ⚡'; badgeClass+=' wild'; }
-    h += '<div class="gen-row">' +
-      '<button class="btn-primary'+(S.loading?' loading':'')+'" id="b-gen"'+(S.loading?' disabled':'')+' ' +
-        (!mob?'title="Ctrl+Enter" ':'')+
-        (!S.loading?'style="box-shadow:0 4px 24px rgba(47,129,247,.28),0 2px 8px rgba(47,129,247,.18),inset 0 1px 0 rgba(255,255,255,.22)"':'')+
-        '>' +
-        (S.loading
-          ? '<span style="display:inline-flex;align-items:center;gap:8px;justify-content:center"><span style="display:inline-block;animation:spin .65s linear infinite;opacity:.7">⟳</span> '+t('btnGenerating')+'</span>'
-          : t('btnGenerate')) +
-      '</button>' +
-      '<button class="btn-random" id="b-random" title="Random subject — Shift/Long-press: wild mode" style="min-width:48px">🔀</button>' +
-      '<button class="btn-adv'+(advChanged?' is-changed':'')+'" id="b-adv" title="'+t('advTooltip')+'">⚙'+(advChanged?'<span class="adv-dot"></span>':'')+'</button>' +
-    '</div>' +
-
-    '<div class="'+badgeClass+'" id="rnd-badge">'+badgeText+'</div>';
-  } else {
-    var improveDisabled = (!S.existing.trim() || S.loading);
-    /* Summary bar — visible only when preset is active */
-    if (S.improvePreset) {
-      var presetLabel = S.improvePreset==='fix'?t('presetFix'):S.improvePreset==='zit'?t('presetZIT'):t('presetEnhance');
-      h += '<div style="font-size:10px;color:var(--t3);letter-spacing:.04em;margin-top:6px;margin-bottom:12px;padding:5px 10px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);line-height:1.7">' +
-        '<span style="color:var(--t3)">Preset</span> <span style="color:var(--acc-txt)">'+presetLabel+'</span>' +
-      '</div>';
-    } else {
-      h += '<div style="margin-bottom:12px"></div>';
-    }
-    h += '<button class="btn-primary'+(S.loading?' loading':'')+(improveDisabled&&!S.loading?' btn-secondary':'')+'" id="b-gen"'+(improveDisabled?' disabled':'')+'>' +
+  var badgeText = '', badgeClass = 'rnd-badge';
+  if (S.rndMode === 'creative') { badgeText='Shift: creative mode'; badgeClass+=' creative'; }
+  else if (S.rndMode === 'wild') { badgeText='DblClick: max wild ⚡'; badgeClass+=' wild'; }
+  h += '<div class="gen-row">' +
+    '<button class="btn-primary'+(S.loading?' loading':'')+'" id="b-gen"'+(S.loading?' disabled':'')+' ' +
+      (!mob?'title="Ctrl+Enter" ':'')+
+      (!S.loading?'style="box-shadow:0 4px 24px rgba(47,129,247,.28),0 2px 8px rgba(47,129,247,.18),inset 0 1px 0 rgba(255,255,255,.22)"':'')+
+      '>' +
       (S.loading
         ? '<span style="display:inline-flex;align-items:center;gap:8px;justify-content:center"><span style="display:inline-block;animation:spin .65s linear infinite;opacity:.7">⟳</span> '+t('btnGenerating')+'</span>'
-        : t('btnOptimize')) +
-    '</button>';
-  }
-
+        : (S.refineMode ? t('btnOptimize') : t('btnGenerate'))) +
+    '</button>' +
+    (!S.refineMode ? '<button class="btn-random" id="b-random" title="Random subject — Shift/Long-press: wild mode" style="min-width:48px">🔀</button>' : '') +
+    '<button class="btn-adv'+(advChanged?' is-changed':'')+'" id="b-adv" title="'+t('advTooltip')+'">⚙'+(advChanged?'<span class="adv-dot"></span>':'')+'</button>' +
+  '</div>' +
+  '<div class="'+badgeClass+'" id="rnd-badge">'+badgeText+'</div>';
   h += '</div>'; /* col-l */
   return h;
 }
@@ -3934,14 +3876,14 @@ function attachEvents() {
       var hist = loadHistory();
       var entry = hist[i];
       if (!entry) return;
-      S.existing = entry.positive;
-      S.mode = 'enhance';
+      S.subject = entry.positive;
+      S.refineMode = true;
       S.mobilePane = 'params';
       S.histOpen = false;
       S.error = '';
       render();
       requestAnimationFrame(function(){
-        var ta = document.getElementById('inp-exist');
+        var ta = document.getElementById('inp-sub');
         if (ta) { ta.focus(); ta.scrollIntoView({ behavior:'smooth', block:'center' }); }
       });
     });
@@ -3955,13 +3897,13 @@ function attachEvents() {
       var hist = loadHistory();
       var entry = hist[i];
       if (!entry) return;
-      S.existing = entry.positive;
-      S.mode = 'enhance';
+      S.subject = entry.positive;
+      S.refineMode = true;
       S.mobilePane = 'params';
       S.error = '';
       render();
       requestAnimationFrame(function(){
-        var ta = document.getElementById('inp-exist');
+        var ta = document.getElementById('inp-sub');
         if (ta) { ta.focus(); ta.scrollIntoView({ behavior:'smooth', block:'center' }); }
       });
     });
@@ -4030,15 +3972,7 @@ function attachEvents() {
   });
 
   document.querySelectorAll('[data-pane]').forEach(function(el){ el.addEventListener('click', function(){ S.mobilePane=el.dataset.pane; render(); }); });
-  document.querySelectorAll('[data-mode]').forEach(function(el){ el.addEventListener('click', function(){
-    var newMode = el.dataset.mode;
-    if (newMode === 'enhance' && !S.existing.trim() && S.result) {
-      S.existing = S.result.positive;
-    }
-    S.mode = newMode;
-    S.error = '';
-    render();
-  }); });
+/* data-mode removed: tabs replaced by refineMode toggle */
   document.querySelectorAll('[data-scene]').forEach(function(el){ el.addEventListener('click', function(){
     S.scene=el.dataset.scene;
     if(S.accordOpen) S.accordOpen.scene=false;
@@ -4168,27 +4102,6 @@ function attachEvents() {
     ta.addEventListener('input', function(){ pm.classList.add('is-typing'); });
   }());
 
-  var existEl = document.getElementById('inp-exist');
-  if (existEl) {
-    var pmExist = document.getElementById('pm-exist');
-    if (pmExist) {
-      existEl.addEventListener('focus', function(){ pmExist.classList.add('is-focus'); });
-      existEl.addEventListener('blur',  function(){ pmExist.classList.remove('is-focus','is-typing'); });
-      existEl.addEventListener('input', function(){ pmExist.classList.add('is-typing'); });
-    }
-    existEl.addEventListener('input', function(){
-      S.existing = existEl.value;
-      autoResize(existEl);
-      var hint = existEl.closest('.field').querySelector('.hint span');
-      if (hint) { var n=existEl.value.length; hint.textContent=n+'/1500'; hint.style.color=n>1400?'var(--red)':n>1000?'var(--amber)':'var(--t4)'; }
-      var hasText = !!existEl.value.trim();
-      var cpBtn = document.getElementById('b-cp-exist');
-      var clBtn = document.getElementById('b-clr-exist');
-      if (cpBtn) cpBtn.style.display = hasText ? '' : 'none';
-      if (clBtn) clBtn.style.display = hasText ? '' : 'none';
-      patch('genBtn');
-    });
-  }
   function lsel(id,key){ var el=document.getElementById(id); if(el) el.addEventListener('change',function(){ S[key]=el.value; saveState(); render(); }); }
   /* accordion toggles */
   document.querySelectorAll('[data-accord]').forEach(function(el){
@@ -4262,15 +4175,10 @@ function attachEvents() {
       patch('preview');
     });
   });
-  lsel('sel-enh-scene','scene'); lsel('sel-enh-style','style');
+/* sel-enh-scene/style removed: enhance tab removed */
   lsel('sel-res','resolution'); lsel('sel-samp','sampler'); lsel('sel-sch','scheduler');
 
-  document.querySelectorAll('[data-preset]').forEach(function(el){
-    el.addEventListener('click', function(){
-      S.improvePreset = (S.improvePreset === el.dataset.preset) ? '' : el.dataset.preset;
-      render();
-    });
-  });
+/* data-preset handler removed: presets replaced by natural language refine */
 
   document.querySelectorAll('[data-ln]').forEach(function(el){ el.addEventListener('input',function(){ S.loras[+el.dataset.ln].name=el.value; saveState(); }); });
   document.querySelectorAll('[data-lw]').forEach(function(el){ el.addEventListener('input',function(){ S.loras[+el.dataset.lw].weight=el.value; saveState(); }); });
@@ -4349,13 +4257,13 @@ function attachEvents() {
   })();
   on('b-improve-this', 'click', function() {
     if (!S.result) return;
-    S.existing = S.result.positive;
-    S.mode = 'enhance';
-    S.mobilePane = 'params'; /* на mobile — показати ліву колонку з textarea */
+    S.subject = S.result.positive;
+    S.refineMode = true;
+    S.mobilePane = 'params';
     S.error = '';
     render();
     requestAnimationFrame(function() {
-      var ta = document.getElementById('inp-exist');
+      var ta = document.getElementById('inp-sub');
       if (ta) {
         ta.focus();
         ta.setSelectionRange(0, 0);
@@ -4418,19 +4326,17 @@ function attachEvents() {
   }
 
   on('b-cp-sub','click',function(e){ if(S.subject.trim()) copyText(S.subject, e.currentTarget); });
-  on('b-cp-exist','click',function(e){ if(S.existing.trim()) copyText(S.existing, e.currentTarget); });
-  on('b-clr-exist','click',function(){
-    var btn = document.getElementById('b-clr-exist');
-    if (btn) { btn.classList.add('cleared'); btn.textContent = '✓'; }
-    setTimeout(function(){
-      S.existing = '';
-      render();
-      requestAnimationFrame(function(){
-        var ta = document.getElementById('inp-exist');
-        if (ta) ta.focus();
-      });
-    }, 400);
+  on('b-toggle-refine', 'click', function(){
+    S.refineMode = !S.refineMode;
+    if (!S.refineMode) S.subject = '';
+    render();
+    requestAnimationFrame(function(){
+      var ta = document.getElementById('inp-sub');
+      if (ta) ta.focus();
+    });
   });
+
+
   on('b-clr-sub','click',function(){
     var btn = document.getElementById('b-clr-sub');
     if (btn) { btn.classList.add('cleared'); btn.textContent = '✓'; }
@@ -4464,7 +4370,7 @@ function attachEvents() {
   requestAnimationFrame(function(){
     var ta = document.getElementById('inp-sub');
     if (ta) autoResize(ta);
-    var te = document.getElementById('inp-exist');
+    var te = null; /* inp-exist removed */
     if (te) autoResize(te);
   });
 
